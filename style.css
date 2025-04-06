@@ -1,28 +1,43 @@
 html,
 body {
     display: flex;
-
     height: 100%;
     margin: 0;
-
     flex-direction: column;
-
 }
 
-#id,#avatar{
+#background {
+    flex:1;
+    background: linear-gradient(30deg,#000000, #434343,#000000);
+    background-size: 300% 300%;
+    animation: bg_mov 10s ease infinite;
+}
+
+@keyframes bg_mov {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+#id,
+#avatar {
     position: fixed;
     top: 1%;
     left: 1%;
 }
 
-#id{
-    transform: translate(0,40%);    
+#id {
+    transform: translate(0, 40%);
     background: linear-gradient(to bottom, #7BC6CC, #BE93C5);
     background-clip: text;
     color: transparent;
     opacity: 0;
-
-    
 }
 
 #avatar {
@@ -42,9 +57,9 @@ body {
     transition: box-shadow 0.2s ease;
 }
 
-#avatar:hover + #id{
+#avatar:hover+#id {
     transition: all 0.2s ease;
-    transform: translate(90%,40%);
+    transform: translate(90%, 40%);
     opacity: 1;
 }
 
@@ -53,12 +68,6 @@ body {
     width: cover;
     background: linear-gradient(to bottom, #003d4d, #00c996);
     padding: 3px;
-}
-
-.main {
-    flex: 1;
-    background: linear-gradient(to top, #152331, #000000);
-    background-repeat: no-repeat;
 }
 
 .footer {
