@@ -7,10 +7,10 @@ body {
 }
 
 #background {
-    flex:1;
     background: linear-gradient(30deg,#000000, #434343,#000000);
     background-size: 300% 300%;
     animation: bg_mov 10s ease infinite;
+    flex:1;
 }
 
 @keyframes bg_mov {
