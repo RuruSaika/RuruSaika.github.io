@@ -3,14 +3,365 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ruru's HomePage</title>
-    <link rel="stylesheet" href="./static/css/styles.css">
+    <!-- 引入 Tailwind CSS，为后续步骤做准备 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* * 步骤 1 的核心改动: 使用 CSS 变量来定义颜色和样式
+         * 这让主题切换变得非常简单和强大。
+         * 我们在 :root 中定义了浅色主题的默认变量。
+         */
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f0f0f0;
+            --bg-tertiary: #fafafa;
+            --bg-card: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-quote: #374151;
+            --border-color: #e5e7eb;
+            --highlight-color: #7f00ff;
+            --tag-bg: #dcdcdc;
+            --footer-text: #888;
+            --shadow-sm: 0 0 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.05);
+            --shadow-lg-hover: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* * 当 body 元素有 data-theme="dark" 属性时，
+         * 我们只需要覆盖上面的变量值，即可实现深色模式。
+         */
+        body[data-theme="dark"] {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #2b2b2b;
+            --bg-tertiary: #292929;
+            --bg-card: #333;
+            --text-primary: #eee;
+            --text-secondary: #ccc;
+            --text-quote: #a0a0a0;
+            --border-color: #444;
+            --tag-bg: #444;
+            --footer-text: #888;
+        }
+
+        /*
+         * 现在，所有组件的样式都使用 var() 函数来引用这些变量。
+         * 这样一来，我们就不再需要为深色模式写很多重复的 CSS 规则了。
+         */
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            font-family: sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .main {
+            display: flex;
+            height: 100%;
+        }
+
+        .sidebar {
+            width: 250px;
+            height: 100%;
+            background-color: var(--bg-secondary);
+            padding: 20px;
+            box-sizing: border-box;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding: 40px;
+            box-sizing: border-box;
+            overflow-y: auto; /* 添加滚动条以防内容溢出 */
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            background-image: url(../static/img/友利奈绪.jpg);
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            border: 3px solid var(--bg-primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .tag {
+            background-color: var(--tag-bg);
+            border-radius: 12px;
+            padding: 4px 12px;
+            font-size: 0.9em;
+        }
+
+        .timeline h3 {
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .timeline ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .timeline li {
+            margin-bottom: 8px;
+            font-size: 0.95em;
+            color: var(--text-secondary);
+        }
+
+        .content h1 {
+            font-size: 2.4rem;
+            margin-bottom: 10px;
+        }
+
+        .highlight {
+            background: linear-gradient(to right, #7f00ff, #e100ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        .quote {
+            font-style: italic;
+            font-size: 1em;
+            margin-bottom: 20px;
+            color: var(--text-quote);
+            border-left: 3px solid var(--highlight-color);
+            padding-left: 15px;
+        }
+
+        .icon-links {
+            display: flex;
+            align-items: center; /* 垂直居中对齐 */
+            gap: 15px; /* 统一设置间距 */
+        }
+
+        .icon-links a {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+            font-size: 0.95em;
+        }
+
+        .icon-links a:hover {
+            background-color: var(--highlight-color);
+            color: white;
+            border-color: var(--highlight-color);
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto; /* 将主题切换器推到最右边 */
+        }
+
+        .tabs {
+            margin-top: 30px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-button {
+            padding: 8px 16px;
+            border: none;
+            border-bottom: 3px solid transparent;
+            background: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--text-secondary);
+            margin-bottom: -1px; /* 让边框重合 */
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .tab-button:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-button.active {
+            border-color: var(--highlight-color);
+            color: var(--highlight-color);
+        }
+
+        .tab-content {
+            max-width: 700px;
+            margin-top: 20px;
+            background-color: var(--bg-tertiary);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .project-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .project-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: var(--text-primary);
+            box-shadow: var(--shadow-md);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid var(--border-color);
+        }
+
+        .project-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg-hover);
+        }
+
+        .card-left h3 {
+            margin: 0;
+            font-size: 1.1em;
+        }
+
+        .card-left p {
+            margin: 5px 0 0;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        .card-right img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 0;
+        }
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+        }
+
+        .arrow {
+            transition: transform 0.3s;
+        }
+
+        .faq-answer {
+            margin-top: 8px;
+            padding-left: 10px;
+            display: none;
+            color: var(--text-secondary);
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .faq-item.open .faq-answer {
+            display: block;
+        }
+
+        .faq-item.open .arrow {
+            transform: rotate(180deg);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            background-color: #ccc;
+            border-radius: 24px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transition: .4s;
+        }
+
+        .slider:before {
+            content: "";
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+        }
+
+        input:checked+.slider {
+            background-color: var(--highlight-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+        
+        .footer {
+            margin-top: auto;
+            padding-top: 30px; /* 增加与上面内容的间距 */
+            text-align: center;
+            font-size: 0.9em;
+            color: var(--footer-text);
+        }
+
+        .footer a {
+            color: var(--footer-text);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 
 <body>
     <div class="main">
-
-        <div class="sidebar">
+        <aside class="sidebar">
             <div class="avatar"></div>
             <div class="tags">
                 <div class="tag">Developer</div>
@@ -27,29 +378,33 @@
                     <li><strong>2023</strong> - Become a college student</li>
                 </ul>
             </div>
-        </div>
+        </aside>
 
-        <div class="content">
-            <h1>Hello,I'm <span class="highlight">RuruSaika</span></h1>
-            <p class="subtitle">Students At School & Programming Enthusiasts</p>
-            <p class="quote">"谁在门外唱那首牡丹江"</p>
-            <div class="icon-links">
-                <a href="https://github.com/RuruSaika" target="_blank">Github</a>
-                <a href="https://space.bilibili.com/286169559" target="_blank">Bilibili</a>
-                <div class="theme-toggle">
-                    <label class="switch">
-                        <input type="checkbox" id="themeSwitcher">
-                        <span class="slider round"></span>
-                    </label>
-                    <span id="themeLabel">light</span>
+        <main class="content">
+            <header>
+                <h1>Hello, I'm <span class="highlight">RuruSaika</span></h1>
+                <p class="subtitle">Student At School & Programming Enthusiast</p>
+                <p class="quote">"谁在门外唱那首牡丹江"</p>
+                <div class="icon-links">
+                    <a href="https://github.com/RuruSaika" target="_blank">Github</a>
+                    <a href="https://space.bilibili.com/286169559" target="_blank">Bilibili</a>
+                    <div class="theme-toggle">
+                        <label class="switch">
+                            <input type="checkbox" id="themeSwitcher">
+                            <span class="slider round"></span>
+                        </label>
+                        <span id="themeLabel">light</span>
+                    </div>
                 </div>
-            </div>
-            <div class="tabs">
-                <button class="tab-button active" onclick="openTab('projects')">Projects</button>
-                <button class="tab-button" onclick="openTab('About Me')">About Me</button>
-                <button class="tab-button" onclick="openTab('faq')">FAQ</button>
-            </div>
-            <div class="tab-content" id="projects">
+            </header>
+            
+            <nav class="tabs">
+                <button class="tab-button active" data-tab="projects">Projects</button>
+                <button class="tab-button" data-tab="about-me">About Me</button>
+                <button class="tab-button" data-tab="faq">FAQ</button>
+            </nav>
+
+            <section class="tab-content active" id="projects">
                 <h2>My Projects</h2>
                 <div class="project-list">
                     <a class="project-card" href="https://github.com/RuruSaika" target="_blank">
@@ -68,11 +423,12 @@
                             <p>Tech notes and thoughts</p>
                         </div>
                         <div class="card-right">
-                            <img src="./static/img/qzone-logo.png" alt="icon">
+                            <!-- 建议将本地图片上传到图床 -->
+                            <img src="static/img/qzone-logo.png" alt="icon">
                         </div>
                     </a>
 
-                    <a class="project-card" href="https://github.com/你的用户名/ue5-fps-game" target="_blank">
+                    <a class="project-card" href="https://github.com/RuruSaika" target="_blank">
                         <div class="card-left">
                             <h3>UE5 FPS Game</h3>
                             <p>My first Unreal Engine project</p>
@@ -82,14 +438,16 @@
                         </div>
                     </a>
                 </div>
-            </div>
-            <div class="tab-content" id="About Me" style="display:none;">
+            </section>
+
+            <section class="tab-content" id="about-me" style="display:none;">
                 <h2>About Me</h2>
                 <p>I love code, UE5, and solving algorithm problems...</p>
-            </div>
-            <div class="tab-content" id="faq" style="display: none;">
+            </section>
+
+            <section class="tab-content" id="faq" style="display: none;">
                 <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
+                    <div class="faq-question">
                         <span>When did you start programming?</span>
                         <span class="arrow">▼</span>
                     </div>
@@ -98,7 +456,7 @@
                     </div>
                 </div>
                 <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
+                    <div class="faq-question">
                         <span>What are you working on now?</span>
                         <span class="arrow">▼</span>
                     </div>
@@ -106,9 +464,8 @@
                         Building an Unreal Engine FPS game with my team using Blueprints.
                     </div>
                 </div>
-
                 <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFAQ(this)">
+                    <div class="faq-question">
                         <span>What's your favorite programming language?</span>
                         <span class="arrow">▼</span>
                     </div>
@@ -116,16 +473,70 @@
                         Definitely C++ for its power and control, though I also enjoy writing Python scripts.
                     </div>
                 </div>
-            </div>
+            </section>
+
             <footer class="footer">
                 © 2025 RuruSaika &nbsp;|&nbsp;
                 <a href="https://github.com/RuruSaika" target="_blank">Source Code</a>
             </footer>
-        </div>
+        </main>
+    </div>
+
+    <script>
+        // 等待整个文档内容加载完成后再执行脚本
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 选项卡切换功能 ---
+            const tabContainer = document.querySelector('.tabs');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const tabButtons = document.querySelectorAll('.tab-button');
+
+            tabContainer.addEventListener('click', (event) => {
+                const clickedButton = event.target.closest('.tab-button');
+                if (!clickedButton) return; // 如果点击的不是按钮，则不执行任何操作
+
+                const tabId = clickedButton.dataset.tab;
+
+                // 隐藏所有内容，移除所有按钮的 active 状态
+                tabContents.forEach(tab => tab.style.display = 'none');
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+
+                // 显示目标内容，为目标按钮添加 active 状态
+                document.getElementById(tabId).style.display = 'block';
+                clickedButton.classList.add('active');
+            });
+
+            // --- FAQ 折叠功能 ---
+            const faqContainer = document.getElementById('faq');
+            faqContainer.addEventListener('click', (event) => {
+                const question = event.target.closest('.faq-question');
+                if(question) {
+                    const item = question.parentElement;
+                    item.classList.toggle('open');
+                }
+            });
 
 
+            // --- 主题切换功能 ---
+            const themeSwitcher = document.getElementById('themeSwitcher');
+            const themeLabel = document.getElementById('themeLabel');
+
+            function applyTheme(isDark) {
+                document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                themeLabel.textContent = isDark ? 'dark' : 'light';
+                themeSwitcher.checked = isDark;
+            }
+
+            // 页面加载时，应用保存的主题
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            applyTheme(savedTheme === 'dark');
+
+            // 监听切换事件
+            themeSwitcher.addEventListener('change', (e) => {
+                applyTheme(e.target.checked);
+            });
+        });
+    </script>
 </body>
-
-<script src="./static/js/script.js"></script>
-
 </html>
