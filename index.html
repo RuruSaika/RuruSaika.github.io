@@ -1,542 +1,227 @@
-<!DOCTYPE HTML>
-<html>
-
+<!doctype html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruru's HomePage</title>
-    <!-- 引入 Tailwind CSS，为后续步骤做准备 -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* * 步骤 1 的核心改动: 使用 CSS 变量来定义颜色和样式
-         * 这让主题切换变得非常简单和强大。
-         * 我们在 :root 中定义了浅色主题的默认变量。
-         */
-        :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f0f0f0;
-            --bg-tertiary: #fafafa;
-            --bg-card: #ffffff;
-            --text-primary: #111827;
-            --text-secondary: #6b7280;
-            --text-quote: #374151;
-            --border-color: #e5e7eb;
-            --highlight-color: #7f00ff;
-            --tag-bg: #dcdcdc;
-            --footer-text: #888;
-            --shadow-sm: 0 0 4px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.05);
-            --shadow-lg-hover: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        /* * 当 body 元素有 data-theme="dark" 属性时，
-         * 我们只需要覆盖上面的变量值，即可实现深色模式。
-         */
-        body[data-theme="dark"] {
-            --bg-primary: #1e1e1e;
-            --bg-secondary: #2b2b2b;
-            --bg-tertiary: #292929;
-            --bg-card: #333;
-            --text-primary: #eee;
-            --text-secondary: #ccc;
-            --text-quote: #a0a0a0;
-            --border-color: #444;
-            --tag-bg: #444;
-            --footer-text: #888;
-        }
-
-        /*
-         * 现在，所有组件的样式都使用 var() 函数来引用这些变量。
-         * 这样一来，我们就不再需要为深色模式写很多重复的 CSS 规则了。
-         */
-        html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            font-family: sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .main {
-            display: flex;
-            height: 100%;
-        }
-
-        .sidebar {
-            width: 250px;
-            height: 100%;
-            background-color: var(--bg-secondary);
-            padding: 20px;
-            box-sizing: border-box;
-            border-right: 1px solid var(--border-color);
-        }
-
-        .content {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            padding: 40px;
-            box-sizing: border-box;
-            overflow-y: auto; /* 添加滚动条以防内容溢出 */
-        }
-
-        .avatar {
-            width: 120px;
-            height: 120px;
-            background-image: url(../static/img/友利奈绪.jpg);
-            background-size: cover;
-            background-position: center;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            border: 3px solid var(--bg-primary);
-            box-shadow: var(--shadow-md);
-        }
-
-        .tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-
-        .tag {
-            background-color: var(--tag-bg);
-            border-radius: 12px;
-            padding: 4px 12px;
-            font-size: 0.9em;
-        }
-
-        .timeline h3 {
-            margin-bottom: 10px;
-            color: var(--text-primary);
-        }
-
-        .timeline ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .timeline li {
-            margin-bottom: 8px;
-            font-size: 0.95em;
-            color: var(--text-secondary);
-        }
-
-        .content h1 {
-            font-size: 2.4rem;
-            margin-bottom: 10px;
-        }
-
-        .highlight {
-            background: linear-gradient(to right, #7f00ff, #e100ff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .subtitle {
-            font-size: 1.2em;
-            margin-bottom: 15px;
-            color: var(--text-secondary);
-        }
-
-        .quote {
-            font-style: italic;
-            font-size: 1em;
-            margin-bottom: 20px;
-            color: var(--text-quote);
-            border-left: 3px solid var(--highlight-color);
-            padding-left: 15px;
-        }
-
-        .icon-links {
-            display: flex;
-            align-items: center; /* 垂直居中对齐 */
-            gap: 15px; /* 统一设置间距 */
-        }
-
-        .icon-links a {
-            padding: 6px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            text-decoration: none;
-            color: var(--text-secondary);
-            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-            font-size: 0.95em;
-        }
-
-        .icon-links a:hover {
-            background-color: var(--highlight-color);
-            color: white;
-            border-color: var(--highlight-color);
-        }
-
-        .theme-toggle {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-left: auto; /* 将主题切换器推到最右边 */
-        }
-
-        .tabs {
-            margin-top: 30px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .tab-button {
-            padding: 8px 16px;
-            border: none;
-            border-bottom: 3px solid transparent;
-            background: none;
-            cursor: pointer;
-            font-weight: bold;
-            color: var(--text-secondary);
-            margin-bottom: -1px; /* 让边框重合 */
-            transition: color 0.2s, border-color 0.2s;
-        }
-
-        .tab-button:hover {
-            color: var(--text-primary);
-        }
-
-        .tab-button.active {
-            border-color: var(--highlight-color);
-            color: var(--highlight-color);
-        }
-
-        .tab-content {
-            max-width: 700px;
-            margin-top: 20px;
-            background-color: var(--bg-tertiary);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .project-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .project-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--bg-card);
-            border-radius: 8px;
-            padding: 15px 20px;
-            text-decoration: none;
-            color: var(--text-primary);
-            box-shadow: var(--shadow-md);
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 1px solid var(--border-color);
-        }
-
-        .project-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-lg-hover);
-        }
-
-        .card-left h3 {
-            margin: 0;
-            font-size: 1.1em;
-        }
-
-        .card-left p {
-            margin: 5px 0 0;
-            font-size: 0.9em;
-            color: var(--text-secondary);
-        }
-
-        .card-right img {
-            width: 40px;
-            height: 40px;
-        }
-
-        .faq-item {
-            border-bottom: 1px solid var(--border-color);
-            padding: 15px 0;
-        }
-        .faq-item:last-child {
-            border-bottom: none;
-        }
-
-        .faq-question {
-            display: flex;
-            justify-content: space-between;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1em;
-        }
-
-        .arrow {
-            transition: transform 0.3s;
-        }
-
-        .faq-answer {
-            margin-top: 8px;
-            padding-left: 10px;
-            display: none;
-            color: var(--text-secondary);
-            font-size: 0.95em;
-            line-height: 1.6;
-        }
-
-        .faq-item.open .faq-answer {
-            display: block;
-        }
-
-        .faq-item.open .arrow {
-            transform: rotate(180deg);
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 24px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            background-color: #ccc;
-            border-radius: 24px;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            transition: .4s;
-        }
-
-        .slider:before {
-            content: "";
-            position: absolute;
-            height: 18px;
-            width: 18px;
-            border-radius: 50%;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-        }
-
-        input:checked+.slider {
-            background-color: var(--highlight-color);
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(26px);
-        }
-        
-        .footer {
-            margin-top: auto;
-            padding-top: 30px; /* 增加与上面内容的间距 */
-            text-align: center;
-            font-size: 0.9em;
-            color: var(--footer-text);
-        }
-
-        .footer a {
-            color: var(--footer-text);
-            text-decoration: none;
-        }
-
-        .footer a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <meta name="description" content="RuruSaika 的个人主页。学生开发者，持续探索 C++、Python、算法、Android 与 Unreal Engine。">
+    <meta name="theme-color" content="#0b0d0e">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rurusaika.github.io/">
+    <meta property="og:title" content="RuruSaika — Student Developer">
+    <meta property="og:description" content="把好奇心写成可以运行的东西。">
+    <meta property="og:image" content="https://rurusaika.github.io/static/img/og.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RuruSaika — Student Developer">
+    <meta name="twitter:description" content="Build. Learn. Repeat.">
+    <meta name="twitter:image" content="https://rurusaika.github.io/static/img/og.png">
+    <title>RuruSaika — Student Developer</title>
+    <link rel="stylesheet" href="static/css/styles.css">
+    <script src="static/js/script.js" defer></script>
 </head>
-
 <body>
-    <div class="main">
-        <aside class="sidebar">
-            <div class="avatar"></div>
-            <div class="tags">
-                <div class="tag">Developer</div>
-                <div class="tag">Student</div>
-                <div class="tag">C++</div>
-                <div class="tag">Python</div>
-                <div class="tag">UE5</div>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <div class="noise" aria-hidden="true"></div>
+
+    <header class="site-header" data-header>
+        <a class="brand" href="#top" aria-label="返回顶部">
+            <span class="brand-mark">R/</span>
+            <span class="brand-name">RuruSaika</span>
+        </a>
+        <nav class="desktop-nav" aria-label="主要导航">
+            <a href="#about">关于</a>
+            <a href="#work">作品</a>
+            <a href="#journey">轨迹</a>
+        </nav>
+        <div class="header-actions">
+            <button class="theme-button" type="button" data-theme-toggle aria-label="切换明暗主题">
+                <span class="theme-icon" aria-hidden="true">◐</span>
+                <span data-theme-label>LIGHT</span>
+            </button>
+            <a class="contact-pill" href="#contact">联系我 <span aria-hidden="true">↘</span></a>
+        </div>
+    </header>
+
+    <main id="main">
+        <section class="hero" id="top" aria-labelledby="hero-title">
+            <div class="hero-grid" aria-hidden="true"></div>
+            <div class="hero-status reveal">
+                <span class="status-dot"></span>
+                <span>AVAILABLE FOR THE NEXT CHALLENGE</span>
             </div>
-            <div class="timeline">
-                <h3>Milestones</h3>
-                <ul>
-                    <li><strong>2025</strong> - Try an internship</li>
-                    <li><strong>2024</strong> - Participate in ACM</li>
-                    <li><strong>2023</strong> - Become a college student</li>
-                </ul>
+
+            <div class="hero-copy">
+                <p class="eyebrow reveal">STUDENT DEVELOPER / CHINA</p>
+                <h1 id="hero-title" class="reveal">
+                    <span>把好奇心</span>
+                    <span>写成<span class="accent-word">可以运行</span>的东西。</span>
+                </h1>
+                <div class="hero-bottom reveal">
+                    <p>你好，我是 <strong>RuruSaika</strong>。我在代码、算法与虚拟世界之间不断试验，享受从零到一，也享受把“能跑”打磨成“好用”。</p>
+                    <a class="circle-link" href="#work" aria-label="查看作品">
+                        <span>VIEW<br>WORK</span>
+                        <span class="circle-arrow" aria-hidden="true">↓</span>
+                    </a>
+                </div>
             </div>
-        </aside>
 
-        <main class="content">
-            <header>
-                <h1>Hello, I'm <span class="highlight">RuruSaika</span></h1>
-                <p class="subtitle">Student At School & Programming Enthusiast</p>
-                <p class="quote">"谁在门外唱那首牡丹江"</p>
-                <div class="icon-links">
-                    <a href="https://github.com/RuruSaika" target="_blank">Github</a>
-                    <a href="https://space.bilibili.com/286169559" target="_blank">Bilibili</a>
-                    <div class="theme-toggle">
-                        <label class="switch">
-                            <input type="checkbox" id="themeSwitcher">
-                            <span class="slider round"></span>
-                        </label>
-                        <span id="themeLabel">light</span>
-                    </div>
+            <aside class="hero-console reveal" aria-label="个人状态">
+                <div class="console-top"><span>PROFILE.SYS</span><span>01</span></div>
+                <div class="console-visual" aria-hidden="true">
+                    <div class="orbit orbit-one"></div>
+                    <div class="orbit orbit-two"></div>
+                    <div class="core">R</div>
+                    <span class="coordinate x">X.3347</span>
+                    <span class="coordinate y">Y.4926</span>
                 </div>
-            </header>
-            
-            <nav class="tabs">
-                <button class="tab-button active" data-tab="projects">Projects</button>
-                <button class="tab-button" data-tab="about-me">About Me</button>
-                <button class="tab-button" data-tab="faq">FAQ</button>
-            </nav>
+                <dl class="console-data">
+                    <div><dt>STATUS</dt><dd>LEARNING</dd></div>
+                    <div><dt>FOCUS</dt><dd>C++ / UE5</dd></div>
+                    <div><dt>LOCAL TIME</dt><dd data-local-time>--:--:--</dd></div>
+                </dl>
+            </aside>
 
-            <section class="tab-content active" id="projects">
-                <h2>My Projects</h2>
-                <div class="project-list">
-                    <a class="project-card" href="https://github.com/RuruSaika" target="_blank">
-                        <div class="card-left">
-                            <h3>NCM Downloader</h3>
-                            <p>Download NCM music with metadata support</p>
-                        </div>
-                        <div class="card-right">
-                            <img src="https://img.icons8.com/color/48/000000/music-library.png" alt="icon">
-                        </div>
-                    </a>
+            <div class="scroll-cue" aria-hidden="true"><span>SCROLL TO EXPLORE</span><i></i></div>
+        </section>
 
-                    <a class="project-card" href="https://user.qzone.qq.com/3347492610/main" target="_blank">
-                        <div class="card-left">
-                            <h3>My Blog</h3>
-                            <p>Tech notes and thoughts</p>
-                        </div>
-                        <div class="card-right">
-                            <!-- 建议将本地图片上传到图床 -->
-                            <img src="static/img/qzone-logo.png" alt="icon">
-                        </div>
-                    </a>
+        <section class="marquee" aria-label="技术兴趣">
+            <div class="marquee-track">
+                <span>C++</span><b>✦</b><span>PYTHON</span><b>✦</b><span>ALGORITHMS</span><b>✦</b><span>UNREAL ENGINE</span><b>✦</b><span>ANDROID</span><b>✦</b>
+                <span>C++</span><b>✦</b><span>PYTHON</span><b>✦</b><span>ALGORITHMS</span><b>✦</b><span>UNREAL ENGINE</span><b>✦</b><span>ANDROID</span><b>✦</b>
+            </div>
+        </section>
 
-                    <a class="project-card" href="https://github.com/RuruSaika" target="_blank">
-                        <div class="card-left">
-                            <h3>UE5 FPS Game</h3>
-                            <p>My first Unreal Engine project</p>
-                        </div>
-                        <div class="card-right">
-                            <img src="https://img.icons8.com/color/48/000000/controller.png" alt="icon">
-                        </div>
-                    </a>
+        <section class="section about" id="about" aria-labelledby="about-title">
+            <div class="section-label reveal"><span>01</span><span>ABOUT / 关于我</span></div>
+            <div class="about-layout">
+                <h2 id="about-title" class="section-heading reveal">在课堂之外，<br>持续<span>自我编译</span>。</h2>
+                <div class="about-copy reveal">
+                    <p class="lead">我是一名大学生，也是一名仍在快速成长的开发者。</p>
+                    <p>对我来说，编程不是背会一套语法，而是把模糊的问题拆开、验证，再给出一个清楚的答案。我参加过 ACM，做过 Android 练习，也在 Unreal Engine 里构建过属于自己的世界。</p>
+                    <p>现在，我继续向更扎实的工程能力前进——写更可靠的代码，也做更有温度的产品。</p>
+                    <div class="signature">Ruru / <span>路还很长，保持好奇。</span></div>
                 </div>
-            </section>
+                <figure class="portrait-card reveal">
+                    <img src="static/img/友利奈绪.jpg" alt="RuruSaika 使用的友利奈绪头像" loading="lazy">
+                    <figcaption><span>ONLINE IDENTITY</span><span>EST. 2023</span></figcaption>
+                </figure>
+            </div>
+        </section>
 
-            <section class="tab-content" id="about-me" style="display:none;">
-                <h2>About Me</h2>
-                <p>I love code, UE5, and solving algorithm problems...</p>
-            </section>
+        <section class="section work" id="work" aria-labelledby="work-title">
+            <div class="section-label reveal"><span>02</span><span>SELECTED WORK / 作品</span></div>
+            <div class="work-heading-row reveal">
+                <h2 id="work-title" class="section-heading">一些进行中的<br><span>有趣尝试。</span></h2>
+                <p>项目不一定宏大，但每一个都记录着一次真实的学习与解决问题。</p>
+            </div>
 
-            <section class="tab-content" id="faq" style="display: none;">
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>When did you start programming?</span>
-                        <span class="arrow">▼</span>
+            <div class="project-list">
+                <article class="project-card reveal" data-project="01">
+                    <div class="project-index">01</div>
+                    <div class="project-main">
+                        <div class="project-meta"><span>TOOL / PYTHON</span><span>PERSONAL PROJECT</span></div>
+                        <h3>NCM Downloader</h3>
+                        <p>面向本地音乐整理的下载工具实验，关注元数据处理与更顺畅的使用体验。</p>
+                        <div class="project-tags"><span>Python</span><span>Metadata</span><span>Automation</span></div>
                     </div>
-                    <div class="faq-answer">
-                        I started with Scratch in primary school, then learned Python & C++ in middle school.
+                    <a class="project-link" href="https://github.com/RuruSaika" target="_blank" rel="noreferrer" aria-label="在 GitHub 查看 NCM Downloader">↗</a>
+                </article>
+
+                <article class="project-card reveal" data-project="02">
+                    <div class="project-index">02</div>
+                    <div class="project-main">
+                        <div class="project-meta"><span>GAME / UE5</span><span>TEAM EXPLORATION</span></div>
+                        <h3>UE5 FPS Study</h3>
+                        <p>用蓝图与 C++ 探索 FPS 的交互、战斗机制和关卡节奏，把玩法一点点变成现实。</p>
+                        <div class="project-tags"><span>Unreal Engine 5</span><span>Blueprint</span><span>C++</span></div>
                     </div>
+                    <a class="project-link" href="https://github.com/RuruSaika" target="_blank" rel="noreferrer" aria-label="在 GitHub 查看相关作品">↗</a>
+                </article>
+
+                <article class="project-card reveal" data-project="03">
+                    <div class="project-index">03</div>
+                    <div class="project-main">
+                        <div class="project-meta"><span>MOBILE / JAVA</span><span>COURSE LAB</span></div>
+                        <h3>My Android Work</h3>
+                        <p>Android 开发课程中的练习与思考，记录从界面搭建到移动端逻辑实现的过程。</p>
+                        <div class="project-tags"><span>Java</span><span>Android</span><span>Mobile</span></div>
+                    </div>
+                    <a class="project-link" href="https://github.com/RuruSaika/My_Android_Work" target="_blank" rel="noreferrer" aria-label="在 GitHub 查看 My Android Work">↗</a>
+                </article>
+
+                <article class="project-card project-card-featured reveal" data-project="04">
+                    <div class="project-index">04</div>
+                    <div class="project-main">
+                        <div class="project-meta"><span>WEB / DESIGN</span><span>YOU ARE HERE</span></div>
+                        <h3>Digital Home</h3>
+                        <p>这座重新设计的数字小屋。轻量、响应式，也是一张关于“我正在成为谁”的动态名片。</p>
+                        <div class="project-tags"><span>HTML</span><span>CSS</span><span>JavaScript</span></div>
+                    </div>
+                    <a class="project-link" href="https://github.com/RuruSaika/RuruSaika.github.io" target="_blank" rel="noreferrer" aria-label="查看个人主页源码">↗</a>
+                </article>
+            </div>
+        </section>
+
+        <section class="section journey" id="journey" aria-labelledby="journey-title">
+            <div class="section-label reveal"><span>03</span><span>JOURNEY / 轨迹</span></div>
+            <div class="journey-layout">
+                <div class="journey-intro reveal">
+                    <h2 id="journey-title" class="section-heading">版本还在<br><span>持续更新。</span></h2>
+                    <p>成长没有稳定版。每次试错，都是下一次发布的依赖。</p>
                 </div>
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>What are you working on now?</span>
-                        <span class="arrow">▼</span>
-                    </div>
-                    <div class="faq-answer">
-                        Building an Unreal Engine FPS game with my team using Blueprints.
-                    </div>
+                <ol class="timeline">
+                    <li class="reveal">
+                        <span class="year">2023</span>
+                        <div><h3>HELLO, UNIVERSITY</h3><p>成为大学生，开始更系统地学习计算机与软件开发。</p></div>
+                    </li>
+                    <li class="reveal">
+                        <span class="year">2024</span>
+                        <div><h3>THINK IN ALGORITHMS</h3><p>参加 ACM 相关训练，用算法重新学习如何描述与拆解问题。</p></div>
+                    </li>
+                    <li class="reveal">
+                        <span class="year">2025</span>
+                        <div><h3>STEP INTO THE REAL WORLD</h3><p>探索实习与真实项目，让知识开始接受场景、协作与交付的检验。</p></div>
+                    </li>
+                    <li class="reveal current">
+                        <span class="year">NOW</span>
+                        <div><h3>BUILD / LEARN / REPEAT</h3><p>继续打磨 C++、工程能力与产品意识，准备迎接下一个挑战。</p></div>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <section class="section stack" aria-labelledby="stack-title">
+            <div class="section-label reveal"><span>04</span><span>TOOLBOX / 工具箱</span></div>
+            <div class="stack-layout">
+                <h2 id="stack-title" class="section-heading reveal">我常用的<br><span>构建材料。</span></h2>
+                <div class="stack-grid reveal">
+                    <div><span>LANGUAGE</span><strong>C++</strong><i>01</i></div>
+                    <div><span>LANGUAGE</span><strong>Python</strong><i>02</i></div>
+                    <div><span>ENGINE</span><strong>Unreal Engine 5</strong><i>03</i></div>
+                    <div><span>DOMAIN</span><strong>Algorithms</strong><i>04</i></div>
+                    <div><span>MOBILE</span><strong>Android / Java</strong><i>05</i></div>
+                    <div><span>DAILY</span><strong>Git & GitHub</strong><i>06</i></div>
                 </div>
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <span>What's your favorite programming language?</span>
-                        <span class="arrow">▼</span>
-                    </div>
-                    <div class="faq-answer">
-                        Definitely C++ for its power and control, though I also enjoy writing Python scripts.
-                    </div>
+            </div>
+        </section>
+
+        <section class="contact" id="contact" aria-labelledby="contact-title">
+            <div class="contact-grid" aria-hidden="true"></div>
+            <p class="eyebrow reveal">READY FOR WHAT'S NEXT?</p>
+            <h2 id="contact-title" class="reveal">有想法？<br><span>一起让它运行。</span></h2>
+            <div class="contact-row reveal">
+                <p>欢迎来 GitHub 看看我正在折腾什么，<br>或者在 Bilibili 找到我。</p>
+                <div class="contact-links">
+                    <a href="https://github.com/RuruSaika" target="_blank" rel="noreferrer"><span>GITHUB</span><i>↗</i></a>
+                    <a href="https://space.bilibili.com/286169559" target="_blank" rel="noreferrer"><span>BILIBILI</span><i>↗</i></a>
                 </div>
-            </section>
+            </div>
+            <blockquote class="reveal">“谁在门外唱那首牡丹江”</blockquote>
+        </section>
+    </main>
 
-            <footer class="footer">
-                © 2025 RuruSaika &nbsp;|&nbsp;
-                <a href="https://github.com/RuruSaika" target="_blank">Source Code</a>
-            </footer>
-        </main>
-    </div>
-
-    <script>
-        // 等待整个文档内容加载完成后再执行脚本
-        document.addEventListener('DOMContentLoaded', () => {
-
-            // --- 选项卡切换功能 ---
-            const tabContainer = document.querySelector('.tabs');
-            const tabContents = document.querySelectorAll('.tab-content');
-            const tabButtons = document.querySelectorAll('.tab-button');
-
-            tabContainer.addEventListener('click', (event) => {
-                const clickedButton = event.target.closest('.tab-button');
-                if (!clickedButton) return; // 如果点击的不是按钮，则不执行任何操作
-
-                const tabId = clickedButton.dataset.tab;
-
-                // 隐藏所有内容，移除所有按钮的 active 状态
-                tabContents.forEach(tab => tab.style.display = 'none');
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-
-                // 显示目标内容，为目标按钮添加 active 状态
-                document.getElementById(tabId).style.display = 'block';
-                clickedButton.classList.add('active');
-            });
-
-            // --- FAQ 折叠功能 ---
-            const faqContainer = document.getElementById('faq');
-            faqContainer.addEventListener('click', (event) => {
-                const question = event.target.closest('.faq-question');
-                if(question) {
-                    const item = question.parentElement;
-                    item.classList.toggle('open');
-                }
-            });
-
-
-            // --- 主题切换功能 ---
-            const themeSwitcher = document.getElementById('themeSwitcher');
-            const themeLabel = document.getElementById('themeLabel');
-
-            function applyTheme(isDark) {
-                document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
-                localStorage.setItem('theme', isDark ? 'dark' : 'light');
-                themeLabel.textContent = isDark ? 'dark' : 'light';
-                themeSwitcher.checked = isDark;
-            }
-
-            // 页面加载时，应用保存的主题
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            applyTheme(savedTheme === 'dark');
-
-            // 监听切换事件
-            themeSwitcher.addEventListener('change', (e) => {
-                applyTheme(e.target.checked);
-            });
-        });
-    </script>
+    <footer class="site-footer">
+        <div><span>© <span data-year></span> RURUSAIKA</span><span>MADE WITH CURIOSITY</span></div>
+        <a href="#top">BACK TO TOP ↑</a>
+    </footer>
 </body>
 </html>
