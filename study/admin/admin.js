@@ -20,24 +20,43 @@ function initAdmin() {
   let toastTimer;
 
   async function boot() {
+    const message = $("[data-auth-message]");
+    const signIn = $("[data-sign-in]");
+    const retry = $("[data-retry-auth]");
+    message.textContent = "正在确认编辑身份…";
+    signIn.hidden = true;
+    retry.hidden = true;
+    authScreen.hidden = false;
+    adminApp.hidden = true;
     try {
-      const response = await fetch(apiUrl("/api/study/admin/session"));
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 12000);
+      const response = await fetch(apiUrl("/api/study/admin/session"), {
+        cache: "no-store",
+        credentials: "same-origin",
+        signal: controller.signal,
+      });
+      window.clearTimeout(timeout);
       const data = await response.json();
       if (!response.ok) {
-        $("[data-auth-message]").textContent = data.error || "需要登录后才能编辑。";
+        message.textContent = data.error || "需要登录后才能编辑。";
         if (response.status === 401) {
-          const signIn = $("[data-sign-in]");
           signIn.href = data.signInPath || "/signin-with-chatgpt?return_to=%2Fstudy%2Fadmin%2F";
           signIn.hidden = false;
+        } else {
+          retry.hidden = false;
         }
         return;
       }
-      authScreen.hidden = true;
-      adminApp.hidden = false;
       $("[data-export]").href = apiUrl("/api/study/admin/export");
       await loadPosts();
-    } catch {
-      $("[data-auth-message]").textContent = "暂时无法连接编辑服务，请稍后重试。";
+      authScreen.hidden = true;
+      adminApp.hidden = false;
+    } catch (error) {
+      message.textContent = error.name === "AbortError"
+        ? "身份检查超时了，可能是网络短暂波动。"
+        : "暂时无法连接编辑服务，请稍后重试。";
+      retry.hidden = false;
     }
   }
 
@@ -233,6 +252,7 @@ function initAdmin() {
   });
   $("[data-new-post]").addEventListener("click", newPost);
   $("[data-empty-new]").addEventListener("click", newPost);
+  $("[data-retry-auth]").addEventListener("click", boot);
   $("[data-admin-search]").addEventListener("input", renderPostList);
   form.addEventListener("input", () => markDirty());
   form.addEventListener("submit", (event) => { event.preventDefault(); save("published"); });

@@ -105,11 +105,11 @@ async function handleApi(request, env, url) {
       error: auth.signedIn ? "当前账号没有编辑权限。" : "请先登录后再编辑。",
       signedIn: auth.signedIn,
       signInPath: "/signin-with-chatgpt?return_to=%2Fstudy%2Fadmin%2F",
-    }, auth.signedIn ? 403 : 401);
+    }, auth.signedIn ? 403 : 401, { "cache-control": "no-store" });
   }
 
   if (url.pathname === "/api/study/admin/session" && request.method === "GET") {
-    return json({ user: { email: auth.email }, role: "owner" });
+    return json({ user: { email: auth.email }, role: "owner" }, 200, { "cache-control": "no-store" });
   }
 
   if (url.pathname === "/api/study/admin/posts" && request.method === "GET") {

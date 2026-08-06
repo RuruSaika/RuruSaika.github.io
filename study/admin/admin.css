@@ -1,4 +1,5 @@
 :root { --admin-bg: #111416; --admin-surface: #181c1e; --admin-line: rgba(255,255,255,.1); --admin-text: #f1efe7; --admin-muted: #8e9492; }
+[hidden] { display: none !important; }
 .admin-body { overflow: hidden; background: var(--admin-bg); color: var(--admin-text); }
 .auth-screen { min-height: 100svh; display: grid; place-items: center; padding: 1.5rem; background: radial-gradient(circle at 50% 35%, rgba(49,92,255,.22), transparent 42%), var(--admin-bg); }
 .auth-card { width: min(460px, 100%); padding: 3rem; border: 1px solid var(--admin-line); background: rgba(24,28,30,.88); text-align: center; box-shadow: 0 30px 100px rgba(0,0,0,.3); }
@@ -6,6 +7,7 @@
 .auth-card h1 { margin: 0 0 1rem; font-size: 2.5rem; letter-spacing: -.06em; }
 .auth-card > p:not(.kicker) { margin: 0 auto 2rem; color: var(--admin-muted); line-height: 1.75; }
 .auth-card .primary-button { display: block; width: 100%; text-decoration: none; }
+.auth-retry { width: 100%; margin-top: .75rem; }
 .text-link { display: inline-block; margin-top: 1.4rem; color: var(--admin-muted); font-size: .75rem; }
 
 .admin-app { min-height: 100svh; }
