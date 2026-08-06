@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="RuruSaika 的考研学习记录：思考、错题与阶段复盘。">
+  <meta name="theme-color" content="#f4f1e8">
+  <meta property="og:title" content="Study Log — RuruSaika">
+  <meta property="og:description" content="把错题留下，把思路理清，把漫长的路走成可以回看的轨迹。">
+  <meta property="og:image" content="https://rurusaika.github.io/static/img/study-og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>Study Log — RuruSaika</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="shared.js" defer></script>
+  <script src="board.js" defer></script>
+</head>
+<body>
+  <div class="study-shell">
+    <nav class="study-nav" aria-label="学习记录导航">
+      <a class="study-brand" href="../"><i>R/</i><span>RuruSaika</span></a>
+      <div class="study-nav-links">
+        <a href="../">个人主页</a>
+        <a href="#records">全部记录</a>
+        <a class="admin-entry" href="admin/">写记录</a>
+      </div>
+    </nav>
+
+    <header class="study-hero">
+      <p class="kicker">POSTGRADUATE STUDY LOG / 研途记录</p>
+      <h1>把不会的，<br><span>变成会的。</span></h1>
+      <p class="hero-note">这里保存考研路上的错题、思考和阶段复盘。它不是一份完美答案，而是一条持续修正、不断接近目标的轨迹。</p>
+      <div class="hero-meta"><span>MISTAKES</span><span>THOUGHTS</span><span>REVIEW</span><span>KEEP MOVING</span></div>
+    </header>
+
+    <main id="records">
+      <div class="board-toolbar">
+        <label class="search-box"><span class="visually-hidden">搜索记录</span><input type="search" data-search placeholder="搜索标题、摘要或标签…" autocomplete="off"></label>
+        <div class="subject-filters" data-filters aria-label="按科目筛选">
+          <button class="filter-button active" type="button" data-subject="全部">全部</button>
+          <button class="filter-button" type="button" data-subject="数学">数学</button>
+          <button class="filter-button" type="button" data-subject="英语">英语</button>
+          <button class="filter-button" type="button" data-subject="政治">政治</button>
+          <button class="filter-button" type="button" data-subject="专业课">专业课</button>
+          <button class="filter-button" type="button" data-subject="复盘">复盘</button>
+        </div>
+      </div>
+
+      <div class="board-summary">
+        <h2>学习记录</h2>
+        <p data-count>LOADING...</p>
+      </div>
+      <section class="post-grid" data-posts aria-live="polite">
+        <div class="loading-board">正在整理书桌…</div>
+      </section>
+    </main>
+
+    <footer class="study-footer"><span>© <span data-year></span> RURUSAIKA / STUDY LOG</span><span>慢一点没关系，别停下来。</span></footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#111416">
+  <title>Study Desk — RuruSaika</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="admin.css">
+  <script src="../shared.js" defer></script>
+  <script src="admin.js" defer></script>
+</head>
+<body class="admin-body">
+  <div class="auth-screen" data-auth-screen>
+    <div class="auth-card">
+      <span class="auth-mark">R/</span>
+      <p class="kicker">PRIVATE STUDY DESK</p>
+      <h1>你的学习工作台</h1>
+      <p data-auth-message>正在确认编辑身份…</p>
+      <a class="primary-button" data-sign-in href="/signin-with-chatgpt?return_to=%2Fstudy%2Fadmin%2F" hidden>使用 ChatGPT 账号登录</a>
+      <a class="text-link" href="../">返回公开记录板</a>
+    </div>
+  </div>
+
+  <div class="admin-app" data-admin-app hidden>
+    <header class="admin-header">
+      <div class="admin-brand"><span>R/</span><div><strong>Study Desk</strong><small>PRIVATE EDITOR</small></div></div>
+      <div class="admin-header-actions">
+        <span class="save-state" data-save-state>所有修改均已保存</span>
+        <a href="../" target="_blank" rel="noreferrer">查看记录板 ↗</a>
+        <a data-export href="/api/study/admin/export">导出备份</a>
+        <a href="/signout-with-chatgpt?return_to=%2Fstudy%2F">退出</a>
+      </div>
+    </header>
+
+    <main class="admin-layout">
+      <aside class="post-sidebar">
+        <div class="sidebar-top"><div><span>RECORDS</span><strong data-post-total>0</strong></div><button class="new-button" type="button" data-new-post>＋ 新记录</button></div>
+        <label class="sidebar-search"><span>⌕</span><input type="search" data-admin-search placeholder="搜索记录…"></label>
+        <div class="post-list" data-post-list></div>
+      </aside>
+
+      <section class="editor" data-editor>
+        <div class="editor-empty" data-editor-empty><div><span>✦</span><h2>选择一篇记录，<br>或者开始新的思考。</h2><button class="primary-button" type="button" data-empty-new>写第一篇记录</button></div></div>
+        <form data-post-form hidden>
+          <input type="hidden" data-id>
+          <div class="editor-toolbar">
+            <div class="editor-status"><span class="status-dot"></span><span data-status-label>新草稿</span></div>
+            <div class="editor-actions">
+              <button class="ghost-button" type="button" data-preview-toggle>预览</button>
+              <button class="ghost-button danger-button" type="button" data-archive hidden>归档</button>
+              <button class="ghost-button" type="button" data-save-draft>保存草稿</button>
+              <button class="primary-button" type="submit" data-publish>发布记录</button>
+            </div>
+          </div>
+
+          <div class="editor-scroll">
+            <div class="field-row">
+              <label><span>科目</span><select data-subject><option>数学</option><option>英语</option><option>政治</option><option>专业课</option><option>复盘</option><option>其他</option></select></label>
+              <label><span>标签 <small>用逗号分隔</small></span><input data-tags placeholder="极限，错题，二刷"></label>
+              <label class="pin-field"><input type="checkbox" data-pinned><span>置顶记录</span></label>
+            </div>
+            <label class="title-field"><span>标题</span><textarea data-title rows="2" maxlength="120" placeholder="给这次思考一个清楚的标题" required></textarea></label>
+            <label><span>摘要 <small>会显示在记录卡片上</small></span><textarea data-summary rows="2" maxlength="400" placeholder="用一两句话说明这篇记录解决了什么问题"></textarea></label>
+
+            <div class="content-field">
+              <div class="content-label"><span>正文</span><div class="format-tools" aria-label="Markdown 快捷工具"><button type="button" data-insert="## ">标题</button><button type="button" data-wrap="**">加粗</button><button type="button" data-insert="> ">引用</button><button type="button" data-insert="- ">列表</button><button type="button" data-wrap="`">代码</button></div></div>
+              <textarea data-content rows="20" placeholder="记录思路、错误原因和下一次遇到它时的判断方法…\n\n支持 Markdown。也可以直接粘贴截图，或把图片拖到这里。"></textarea>
+              <div class="markdown-preview article-body" data-preview hidden></div>
+            </div>
+
+            <div class="upload-zone" data-upload-zone tabindex="0" role="button" aria-label="上传错题图片">
+              <input type="file" data-file-input accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden>
+              <div class="upload-icon">＋</div>
+              <div><strong>添加错题图片</strong><p>点击选择、拖拽到这里，或直接在正文中粘贴截图。单张不超过 8 MB。</p></div>
+              <span data-upload-state>JPG / PNG / WEBP / GIF</span>
+            </div>
+          </div>
+        </form>
+      </section>
+    </main>
+    <div class="toast" data-toast role="status" aria-live="polite"></div>
+  </div>
+</body>
+</html>
