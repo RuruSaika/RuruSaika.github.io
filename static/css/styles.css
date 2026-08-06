@@ -102,6 +102,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .desktop-nav a:hover::after, .desktop-nav a:focus-visible::after { right: 0; }
 
 .header-actions { justify-self: end; display: flex; align-items: center; gap: 1rem; }
+.mobile-study-link { display: none; align-items: center; gap: .45rem; padding: .65rem .85rem; border: 1px solid var(--line); border-radius: 999px; color: var(--paper); text-decoration: none; font-size: .7rem; font-weight: 800; letter-spacing: .04em; white-space: nowrap; transition: background .25s ease, border-color .25s ease, color .25s ease; }
+.mobile-study-link span { color: var(--lime); font: 800 .58rem/1 ui-monospace, "Cascadia Code", monospace; }
+.mobile-study-link:hover, .mobile-study-link:focus-visible { border-color: var(--blue); background: var(--blue); color: #f7f5ee; }
+.mobile-study-link:hover span, .mobile-study-link:focus-visible span { color: var(--lime); }
 .theme-button { display: flex; align-items: center; gap: .55rem; border: 0; background: none; color: var(--muted); cursor: pointer; font: 700 .66rem/1 ui-monospace, "Cascadia Code", monospace; letter-spacing: .09em; }
 .theme-icon { color: var(--lime); font-size: 1rem; transition: transform .35s ease; }
 .theme-button:hover .theme-icon { transform: rotate(180deg); }
@@ -283,6 +287,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @media (max-width: 980px) {
     .site-header { grid-template-columns: 1fr auto; }
     .desktop-nav { display: none; }
+    .mobile-study-link { display: inline-flex; }
     .hero { grid-template-columns: 1fr; align-content: center; }
     .hero-copy { padding-top: 4rem; }
     .hero-console { display: none; }
@@ -304,6 +309,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
     .site-header { height: 66px; }
     .brand-name, .theme-button span:last-child { display: none; }
     .header-actions { gap: .55rem; }
+    .mobile-study-link { padding: .62rem .72rem; }
+    .mobile-study-link span { display: none; }
     .contact-pill { padding: .65rem .8rem; }
     .hero { min-height: 920px; padding-top: 7.5rem; align-content: start; }
     .hero-status { top: 84px; font-size: .52rem; }
