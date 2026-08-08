@@ -37,54 +37,58 @@ async function handleApi(request, env, url) {
 
   if (url.pathname === "/api/study/posts" && request.method === "GET") {
     const requestedCategory = normalizeRequestedCategory(url.searchParams.get("category") || url.searchParams.get("subject"));
+    const requestedSort = url.searchParams.get("sort") === "date" ? "date" : "manual";
+    const orderBy = requestedSort === "date"
+      ? "published_at DESC"
+      : "CASE WHEN sort_order = 0 THEN 0 ELSE 1 END ASC, CASE WHEN sort_order = 0 THEN published_at END DESC, sort_order ASC, published_at DESC";
     const limit = clamp(Number(url.searchParams.get("limit")) || 50, 1, 100);
     let query;
     if (requestedCategory === "学习") {
       query = env.DB.prepare(`
-          SELECT id, slug, title, summary, subject, tags_json, is_pinned,
+          SELECT id, slug, title, summary, subject, tags_json, is_pinned, sort_order,
                  published_at, updated_at
           FROM study_posts
           WHERE status = 'published' AND subject IN ('学习', '数学', '英语', '政治', '专业课', '复盘')
-          ORDER BY is_pinned DESC, published_at DESC
+          ORDER BY ${orderBy}
           LIMIT ?
         `).bind(limit);
     } else if (requestedCategory === "其它") {
       query = env.DB.prepare(`
-          SELECT id, slug, title, summary, subject, tags_json, is_pinned,
+          SELECT id, slug, title, summary, subject, tags_json, is_pinned, sort_order,
                  published_at, updated_at
           FROM study_posts
           WHERE status = 'published' AND subject IN ('其它', '其他')
-          ORDER BY is_pinned DESC, published_at DESC
+          ORDER BY ${orderBy}
           LIMIT ?
         `).bind(limit);
     } else if (requestedCategory === "生活") {
       query = env.DB.prepare(`
-          SELECT id, slug, title, summary, subject, tags_json, is_pinned,
+          SELECT id, slug, title, summary, subject, tags_json, is_pinned, sort_order,
                  published_at, updated_at
           FROM study_posts
           WHERE status = 'published' AND subject = '生活'
-          ORDER BY is_pinned DESC, published_at DESC
+          ORDER BY ${orderBy}
           LIMIT ?
         `).bind(limit);
     } else {
       query = env.DB.prepare(`
-          SELECT id, slug, title, summary, subject, tags_json, is_pinned,
+          SELECT id, slug, title, summary, subject, tags_json, is_pinned, sort_order,
                  published_at, updated_at
           FROM study_posts
           WHERE status = 'published'
-          ORDER BY is_pinned DESC, published_at DESC
+          ORDER BY ${orderBy}
           LIMIT ?
         `).bind(limit);
     }
     const result = await query.all();
-    return json({ posts: result.results.map(serializePost) }, 200, cors);
+    return json({ posts: result.results.map(serializePost), sort: requestedSort }, 200, cors);
   }
 
   const publicPostMatch = url.pathname.match(/^\/api\/study\/posts\/([^/]+)$/);
   if (publicPostMatch && request.method === "GET") {
     const slug = decodeURIComponent(publicPostMatch[1]);
     const post = await env.DB.prepare(`
-      SELECT id, slug, title, summary, content, subject, tags_json, is_pinned,
+      SELECT id, slug, title, summary, content, subject, tags_json, is_pinned, sort_order,
              published_at, updated_at
       FROM study_posts
       WHERE slug = ? AND status = 'published'
@@ -134,13 +138,34 @@ async function handleApi(request, env, url) {
     return json({ user: { email: auth.email }, role: "owner" }, 200, { "cache-control": "no-store" });
   }
 
+  if (url.pathname === "/api/study/admin/posts/reorder" && request.method === "POST") {
+    let payload;
+    try { payload = await request.json(); }
+    catch { return json({ error: "排序数据无效。" }, 400); }
+    const ids = Array.isArray(payload.ids) ? payload.ids : [];
+    if (!ids.length || ids.length > 200 || ids.some((id) => !validId(id)) || new Set(ids).size !== ids.length) {
+      return json({ error: "排序列表无效。" }, 400);
+    }
+    const existing = await env.DB.prepare("SELECT id FROM study_posts WHERE status != 'archived'").all();
+    const existingIds = new Set(existing.results.map((row) => row.id));
+    if (existingIds.size !== ids.length || ids.some((id) => !existingIds.has(id))) {
+      return json({ error: "文章列表已经变化，请刷新后重试。" }, 409);
+    }
+    await env.DB.batch(ids.map((id, index) => env.DB.prepare(
+      "UPDATE study_posts SET sort_order = ? WHERE id = ?",
+    ).bind(index + 1, id)));
+    return json({ ok: true });
+  }
+
   if (url.pathname === "/api/study/admin/posts" && request.method === "GET") {
     const result = await env.DB.prepare(`
       SELECT id, slug, title, summary, content, subject, tags_json, status,
-             is_pinned, published_at, created_at, updated_at, revision
+             is_pinned, sort_order, published_at, created_at, updated_at, revision
       FROM study_posts
       WHERE status != 'archived'
-      ORDER BY updated_at DESC
+      ORDER BY CASE WHEN sort_order = 0 THEN 0 ELSE 1 END ASC,
+               CASE WHEN sort_order = 0 THEN published_at END DESC,
+               sort_order ASC, updated_at DESC
       LIMIT 200
     `).all();
     return json({ posts: result.results.map(serializePost) });
@@ -153,7 +178,7 @@ async function handleApi(request, env, url) {
     const now = new Date().toISOString();
     const id = validId(payload.id) ? payload.id : crypto.randomUUID();
     const existing = validId(payload.id)
-      ? await env.DB.prepare("SELECT id, slug, created_at, published_at, revision FROM study_posts WHERE id = ? LIMIT 1").bind(id).first()
+      ? await env.DB.prepare("SELECT id, slug, created_at, published_at, revision, sort_order FROM study_posts WHERE id = ? LIMIT 1").bind(id).first()
       : null;
     const title = cleanText(payload.title, 120);
     if (!title) return json({ error: "标题不能为空。" }, 400);
@@ -167,12 +192,15 @@ async function handleApi(request, env, url) {
     const createdAt = existing?.created_at || now;
     const publishedAt = status === "published" ? (existing?.published_at || now) : existing?.published_at || null;
     const revision = Number(existing?.revision || 0) + 1;
+    const nextOrder = existing
+      ? Number(existing.sort_order || 0)
+      : Number((await env.DB.prepare("SELECT COALESCE(MAX(sort_order), 0) AS value FROM study_posts").first())?.value || 0) + 1;
 
     await env.DB.prepare(`
       INSERT INTO study_posts (
         id, slug, title, summary, content, subject, tags_json, status,
-        is_pinned, author_email, published_at, created_at, updated_at, revision
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        is_pinned, sort_order, author_email, published_at, created_at, updated_at, revision
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         title = excluded.title,
         summary = excluded.summary,
@@ -186,12 +214,12 @@ async function handleApi(request, env, url) {
         revision = excluded.revision
     `).bind(
       id, slug, title, summary, content, subject, JSON.stringify(tags), status,
-      isPinned, auth.email, publishedAt, createdAt, now, revision,
+      isPinned, nextOrder, auth.email, publishedAt, createdAt, now, revision,
     ).run();
 
     const saved = await env.DB.prepare(`
       SELECT id, slug, title, summary, content, subject, tags_json, status,
-             is_pinned, published_at, created_at, updated_at, revision
+             is_pinned, sort_order, published_at, created_at, updated_at, revision
       FROM study_posts WHERE id = ? LIMIT 1
     `).bind(id).first();
     return json({ post: serializePost(saved) }, existing ? 200 : 201);
@@ -278,8 +306,9 @@ async function handleApi(request, env, url) {
 async function ensureSchema(env) {
   if (!env.DB || !env.UPLOADS) throw new Error("Study storage bindings are unavailable");
   if (!schemaPromise) {
-    schemaPromise = env.DB.batch([
-      env.DB.prepare(`CREATE TABLE IF NOT EXISTS study_posts (
+    schemaPromise = (async () => {
+      await env.DB.batch([
+        env.DB.prepare(`CREATE TABLE IF NOT EXISTS study_posts (
         id TEXT PRIMARY KEY NOT NULL,
         slug TEXT NOT NULL UNIQUE,
         title TEXT NOT NULL,
@@ -289,13 +318,14 @@ async function ensureSchema(env) {
         tags_json TEXT NOT NULL DEFAULT '[]',
         status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),
         is_pinned INTEGER NOT NULL DEFAULT 0 CHECK (is_pinned IN (0, 1)),
+        sort_order INTEGER NOT NULL DEFAULT 0,
         author_email TEXT NOT NULL,
         published_at TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         revision INTEGER NOT NULL DEFAULT 1
       )`),
-      env.DB.prepare(`CREATE TABLE IF NOT EXISTS study_assets (
+        env.DB.prepare(`CREATE TABLE IF NOT EXISTS study_assets (
         id TEXT PRIMARY KEY NOT NULL,
         post_id TEXT,
         r2_key TEXT NOT NULL UNIQUE,
@@ -306,10 +336,16 @@ async function ensureSchema(env) {
         created_at TEXT NOT NULL,
         FOREIGN KEY (post_id) REFERENCES study_posts(id) ON DELETE SET NULL
       )`),
-      env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_study_posts_status_published_at ON study_posts(status, published_at DESC)"),
-      env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_study_posts_subject_status ON study_posts(subject, status)"),
-      env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_study_assets_post_id ON study_assets(post_id)"),
-    ]).catch((error) => {
+        env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_study_posts_status_published_at ON study_posts(status, published_at DESC)"),
+        env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_study_posts_subject_status ON study_posts(subject, status)"),
+        env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_study_assets_post_id ON study_assets(post_id)"),
+      ]);
+      const columns = await env.DB.prepare("PRAGMA table_info(study_posts)").all();
+      if (!columns.results.some((column) => column.name === "sort_order")) {
+        await env.DB.prepare("ALTER TABLE study_posts ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0").run();
+      }
+      await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_study_posts_sort_order ON study_posts(sort_order)").run();
+    })().catch((error) => {
       schemaPromise = undefined;
       throw error;
     });
@@ -364,6 +400,7 @@ function serializePost(row) {
     tags,
     status: row.status,
     isPinned: Boolean(row.is_pinned),
+    sortOrder: Number(row.sort_order || 0),
     publishedAt: row.published_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

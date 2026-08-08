@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="styles.css?v={{STYLE_VERSION}}-2">
   <link rel="stylesheet" href="visual-v2.css?v={{STYLE_VERSION}}">
   <script src="shared.js?v={{STYLE_VERSION}}" defer></script>
-  <script src="board.js?v={{STYLE_VERSION}}" defer></script>
+  <script src="board.js?v={{STYLE_VERSION}}-sort1" defer></script>
 </head>
 <body>
   <div class="study-shell">
@@ -54,11 +54,18 @@
     <main id="records">
       <div class="board-toolbar">
         <label class="search-box"><span class="visually-hidden">搜索文章</span><input type="search" data-search placeholder="搜索标题、摘要或标签…" autocomplete="off"></label>
-        <div class="subject-filters" data-filters aria-label="按分类筛选">
-          <button class="filter-button active" type="button" data-category="全部">全部</button>
-          <button class="filter-button" type="button" data-category="生活">生活</button>
-          <button class="filter-button" type="button" data-category="学习">学习</button>
-          <button class="filter-button" type="button" data-category="其它">其它</button>
+        <div class="board-controls">
+          <div class="subject-filters" data-filters aria-label="按分类筛选">
+            <button class="filter-button active" type="button" data-category="全部">全部</button>
+            <button class="filter-button" type="button" data-category="生活">生活</button>
+            <button class="filter-button" type="button" data-category="学习">学习</button>
+            <button class="filter-button" type="button" data-category="其它">其它</button>
+          </div>
+          <div class="sort-switch" data-sort-switch aria-label="文章排序方式">
+            <span>排序</span>
+            <button class="sort-button active" type="button" data-sort-mode="manual">手动排序</button>
+            <button class="sort-button" type="button" data-sort-mode="date">发布日期</button>
+          </div>
         </div>
       </div>
 

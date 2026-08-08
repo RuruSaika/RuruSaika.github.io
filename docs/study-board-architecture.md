@@ -17,6 +17,11 @@ portfolio redesign does not endanger the accumulated articles.
   `subject` field is kept as an internal compatibility boundary; the public
   categories are `生活`, `学习`, and `其它`, and legacy study subjects normalize
   to `学习` without destructive data migration.
+- Manual article order is stored in the `sort_order` column. The private editor
+  persists the complete active-post order through an owner-only reorder endpoint.
+  The public Blog defaults to this manual order and can switch locally to pure
+  reverse publication-date order. Rows without an assigned manual position fall
+  back to publication date until the first reorder is saved.
 - R2 stores uploaded images. Markdown refers to images through portable
   `asset://<id>` tokens rather than deployment-specific URLs.
 

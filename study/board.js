@@ -3,8 +3,10 @@ const postsRoot = document.querySelector("[data-posts]");
 const countRoot = document.querySelector("[data-count]");
 const searchInput = document.querySelector("[data-search]");
 const filterRoot = document.querySelector("[data-filters]");
+const sortRoot = document.querySelector("[data-sort-switch]");
 let allPosts = [];
 let activeCategory = "全部";
+let activeSort = "manual";
 
 document.querySelector("[data-year]").textContent = new Date().getFullYear();
 
@@ -27,7 +29,7 @@ function renderPosts() {
     const matchesCategory = activeCategory === "全部" || post.subject === activeCategory;
     const haystack = [post.title, post.summary, post.subject, ...(post.tags || [])].join(" ").toLowerCase();
     return matchesCategory && (!query || haystack.includes(query));
-  });
+  }).sort(comparePosts);
 
   countRoot.textContent = `${String(filtered.length).padStart(2, "0")} ARTICLES`;
   if (!filtered.length) {
@@ -48,12 +50,30 @@ function renderPosts() {
   `).join("");
 }
 
+function comparePosts(a, b) {
+  const dateDifference = new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime();
+  if (activeSort === "date") return dateDifference;
+  const aOrder = Number(a.sortOrder || 0);
+  const bOrder = Number(b.sortOrder || 0);
+  if (aOrder > 0 && bOrder > 0) return aOrder - bOrder || dateDifference;
+  if (aOrder > 0 || bOrder > 0) return aOrder > 0 ? 1 : -1;
+  return dateDifference;
+}
+
 searchInput.addEventListener("input", renderPosts);
 filterRoot.addEventListener("click", (event) => {
   const button = event.target.closest("[data-category]");
   if (!button) return;
   activeCategory = button.dataset.category;
   filterRoot.querySelectorAll("button").forEach((item) => item.classList.toggle("active", item === button));
+  renderPosts();
+});
+
+sortRoot.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-sort-mode]");
+  if (!button) return;
+  activeSort = button.dataset.sortMode;
+  sortRoot.querySelectorAll("button").forEach((item) => item.classList.toggle("active", item === button));
   renderPosts();
 });
 

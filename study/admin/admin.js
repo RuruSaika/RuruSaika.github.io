@@ -1,5 +1,15 @@
 const { SITES_ORIGIN, apiUrl, escapeHtml, renderMarkdown, formatDate, isSitesHost } = window.StudyBoard;
 
+function reorderPostList(posts, postId, targetId, placeAfter = false) {
+  if (postId === targetId) return false;
+  const fromIndex = posts.findIndex((post) => post.id === postId);
+  if (fromIndex < 0 || !posts.some((post) => post.id === targetId)) return false;
+  const [moved] = posts.splice(fromIndex, 1);
+  const targetIndex = posts.findIndex((post) => post.id === targetId);
+  posts.splice(targetIndex + (placeAfter ? 1 : 0), 0, moved);
+  return true;
+}
+
 if (!isSitesHost) {
   location.replace(`${SITES_ORIGIN}/study/admin/`);
 } else {
@@ -7,7 +17,7 @@ if (!isSitesHost) {
 }
 
 function initAdmin() {
-  const state = { posts: [], current: null, dirty: false, preview: false, saving: false };
+  const state = { posts: [], current: null, dirty: false, preview: false, saving: false, reordering: false, orderVersion: 0, savedOrderVersion: 0, orderTimer: 0 };
   const $ = (selector) => document.querySelector(selector);
   const authScreen = $("[data-auth-screen]");
   const adminApp = $("[data-admin-app]");
@@ -18,6 +28,7 @@ function initAdmin() {
   const preview = $("[data-preview]");
   const toastRoot = $("[data-toast]");
   let toastTimer;
+  let pointerDrag = null;
 
   async function boot() {
     const message = $("[data-auth-message]");
@@ -81,12 +92,64 @@ function initAdmin() {
       return;
     }
     postList.innerHTML = filtered.map((post) => `
-      <button class="sidebar-post ${state.current?.id === post.id ? "active" : ""}" type="button" data-open-id="${post.id}">
-        <div class="sidebar-post-meta"><span>${escapeHtml(post.subject)}</span><span class="${post.status === "published" ? "published-badge" : "draft-badge"}">${post.status === "published" ? "已发布" : "草稿"}</span></div>
-        <h3>${escapeHtml(post.title || "未命名文章")}</h3>
-        <div class="sidebar-post-meta"><span>${formatDate(post.updatedAt)}</span><span>REV. ${post.revision || 1}</span></div>
-      </button>
+      <article class="sidebar-post ${state.current?.id === post.id ? "active" : ""}" data-post-row data-post-id="${post.id}">
+        <button class="sidebar-post-open" type="button" data-open-id="${post.id}">
+          <div class="sidebar-post-meta"><span>${escapeHtml(post.subject)}</span><span class="${post.status === "published" ? "published-badge" : "draft-badge"}">${post.status === "published" ? "已发布" : "草稿"}</span></div>
+          <h3>${escapeHtml(post.title || "未命名文章")}</h3>
+          <div class="sidebar-post-meta"><span>${formatDate(post.updatedAt)}</span><span>REV. ${post.revision || 1}</span></div>
+        </button>
+        <button class="sort-handle" type="button" draggable="true" data-sort-handle="${post.id}" aria-label="拖动排序：${escapeHtml(post.title || "未命名文章")}" title="拖动排序，也可使用上下方向键">⠿</button>
+      </article>
     `).join("");
+  }
+
+  function movePost(postId, targetId, placeAfter = false) {
+    if (!reorderPostList(state.posts, postId, targetId, placeAfter)) return;
+    state.posts.forEach((post, index) => { post.sortOrder = index + 1; });
+    state.orderVersion += 1;
+    renderPostList();
+    scheduleOrderSave();
+  }
+
+  function movePostByOffset(postId, offset) {
+    const index = state.posts.findIndex((post) => post.id === postId);
+    const targetIndex = index + offset;
+    if (index < 0 || targetIndex < 0 || targetIndex >= state.posts.length) return;
+    const targetId = state.posts[targetIndex].id;
+    movePost(postId, targetId, offset > 0);
+    requestAnimationFrame(() => postList.querySelector(`[data-sort-handle="${postId}"]`)?.focus());
+  }
+
+  function scheduleOrderSave() {
+    window.clearTimeout(state.orderTimer);
+    $("[data-save-state]").textContent = "正在保存文章顺序…";
+    state.orderTimer = window.setTimeout(saveOrder, 280);
+  }
+
+  async function saveOrder() {
+    if (state.reordering) return;
+    state.reordering = true;
+    try {
+      while (state.savedOrderVersion !== state.orderVersion) {
+        const version = state.orderVersion;
+        const response = await fetch(apiUrl("/api/study/admin/posts/reorder"), {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ ids: state.posts.map((post) => post.id) }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "排序保存失败");
+        state.savedOrderVersion = version;
+      }
+      $("[data-save-state]").textContent = state.dirty ? "有尚未保存的修改" : "文章顺序已保存";
+      toast("文章顺序已更新。");
+    } catch (error) {
+      $("[data-save-state]").textContent = "排序保存失败";
+      toast(error.message || "排序保存失败，请刷新后重试。", true);
+      await loadPosts(state.current?.id);
+    } finally {
+      state.reordering = false;
+    }
   }
 
   function newPost() {
@@ -271,6 +334,67 @@ function initAdmin() {
   postList.addEventListener("click", (event) => {
     const button = event.target.closest("[data-open-id]");
     if (button) openPost(state.posts.find((post) => post.id === button.dataset.openId));
+  });
+  postList.addEventListener("keydown", (event) => {
+    const handle = event.target.closest("[data-sort-handle]");
+    if (!handle || !["ArrowUp", "ArrowDown"].includes(event.key)) return;
+    event.preventDefault();
+    movePostByOffset(handle.dataset.sortHandle, event.key === "ArrowUp" ? -1 : 1);
+  });
+  postList.addEventListener("dragstart", (event) => {
+    const handle = event.target.closest("[data-sort-handle]");
+    if (!handle) { event.preventDefault(); return; }
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", handle.dataset.sortHandle);
+    handle.closest("[data-post-row]").classList.add("dragging");
+  });
+  postList.addEventListener("dragover", (event) => {
+    const row = event.target.closest("[data-post-row]");
+    if (!row) return;
+    event.preventDefault();
+    postList.querySelectorAll(".drag-before, .drag-after").forEach((item) => item.classList.remove("drag-before", "drag-after"));
+    const bounds = row.getBoundingClientRect();
+    row.classList.add(event.clientY > bounds.top + bounds.height / 2 ? "drag-after" : "drag-before");
+  });
+  postList.addEventListener("drop", (event) => {
+    const row = event.target.closest("[data-post-row]");
+    if (!row) return;
+    event.preventDefault();
+    const bounds = row.getBoundingClientRect();
+    movePost(event.dataTransfer.getData("text/plain"), row.dataset.postId, event.clientY > bounds.top + bounds.height / 2);
+  });
+  postList.addEventListener("dragend", () => {
+    postList.querySelectorAll(".dragging, .drag-before, .drag-after").forEach((item) => item.classList.remove("dragging", "drag-before", "drag-after"));
+  });
+  postList.addEventListener("pointerdown", (event) => {
+    const handle = event.target.closest("[data-sort-handle]");
+    if (!handle || event.pointerType === "mouse") return;
+    event.preventDefault();
+    handle.setPointerCapture(event.pointerId);
+    pointerDrag = { id: handle.dataset.sortHandle, pointerId: event.pointerId };
+    handle.closest("[data-post-row]").classList.add("dragging");
+  });
+  postList.addEventListener("pointermove", (event) => {
+    if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
+    const row = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-post-row]");
+    postList.querySelectorAll(".drag-before, .drag-after").forEach((item) => item.classList.remove("drag-before", "drag-after"));
+    if (!row) return;
+    const bounds = row.getBoundingClientRect();
+    row.classList.add(event.clientY > bounds.top + bounds.height / 2 ? "drag-after" : "drag-before");
+  });
+  postList.addEventListener("pointerup", (event) => {
+    if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
+    const row = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-post-row]");
+    if (row) {
+      const bounds = row.getBoundingClientRect();
+      movePost(pointerDrag.id, row.dataset.postId, event.clientY > bounds.top + bounds.height / 2);
+    }
+    pointerDrag = null;
+    postList.querySelectorAll(".dragging, .drag-before, .drag-after").forEach((item) => item.classList.remove("dragging", "drag-before", "drag-after"));
+  });
+  postList.addEventListener("pointercancel", () => {
+    pointerDrag = null;
+    postList.querySelectorAll(".dragging, .drag-before, .drag-after").forEach((item) => item.classList.remove("dragging", "drag-before", "drag-after"));
   });
   $("[data-new-post]").addEventListener("click", newPost);
   $("[data-empty-new]").addEventListener("click", newPost);

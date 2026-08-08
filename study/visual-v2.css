@@ -63,6 +63,9 @@ body {
 .search-box::before { color: var(--blue); }
 .filter-button { border-radius: 3px; font-weight: 550; }
 .filter-button:hover, .filter-button.active { border-color: var(--blue); background: var(--blue); color: #061014; }
+.sort-button { border-radius: 3px; font-weight: 550; }
+.sort-button:hover { border-color: var(--line); color: var(--blue); }
+.sort-button.active { border-color: var(--line); background: rgba(255, 255, 255, .04); color: var(--ink); }
 .board-summary h2 { font-weight: 580; }
 .post-grid { gap: .8rem; }
 .post-card { border-color: var(--line); background: rgba(16, 21, 24, .9); box-shadow: none; }

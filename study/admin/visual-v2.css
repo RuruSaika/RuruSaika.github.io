@@ -146,6 +146,7 @@
 .sidebar-post:hover { background: rgba(255, 255, 255, .018); }
 .sidebar-post.active { background: rgba(255, 255, 255, .028); box-shadow: inset 2px 0 0 var(--blue); }
 .sidebar-post h3 { font-weight: 550; }
+.sort-handle:hover, .sort-handle:focus-visible { border-color: var(--blue); color: var(--blue); }
 .published-badge { color: var(--blue); }
 .draft-badge { color: var(--warning); }
 
