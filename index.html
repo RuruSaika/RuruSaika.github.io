@@ -16,6 +16,7 @@
     <meta name="twitter:description" content="生活、学习，以及正在做的事。">
     <meta name="twitter:image" content="https://rurusaika.github.io/static/img/og.png">
     <title>RuruSaika — 个人主页</title>
+    <link rel="icon" href="static/img/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="static/css/styles.css?v=4">
     <link rel="stylesheet" href="static/css/visual-v2.css?v={{STYLE_VERSION}}">
     <script src="static/js/script.js" defer></script>
@@ -188,24 +189,31 @@
                     <h2 id="journey-title" class="section-heading">从这里一路，<br><span>走到现在。</span></h2>
                     <p>这些节点帮助我记住每个阶段接触过的事情，也让我看清变化发生在何处。</p>
                 </div>
-                <ol class="timeline">
-                    <li class="reveal current">
-                        <span class="year">NOW</span>
-                        <div><h3>CURRENT / UNRESOLVED</h3><p>继续学习 C++，准备考研，也继续修改这个仍未定稿的空间。</p></div>
-                    </li>
-                    <li class="reveal">
-                        <span class="year">2025</span>
-                        <div><h3>OUTSIDE / CONTACT</h3><p>接触实习与真实项目，第一次看见课堂之外的约束。</p></div>
-                    </li>
-                    <li class="reveal">
-                        <span class="year">2024</span>
-                        <div><h3>ALGORITHM / PRACTICE</h3><p>参加 ACM 相关训练，重新练习如何描述和拆解问题。</p></div>
-                    </li>
-                    <li class="reveal">
-                        <span class="year">2023</span>
-                        <div><h3>UNIVERSITY / ENTRY</h3><p>进入大学，开始系统接触计算机与软件开发。</p></div>
-                    </li>
-                </ol>
+                <div class="journey-window reveal">
+                    <div class="journey-window-titlebar">
+                        <span><b>R/</b> journey.log — 轨迹</span>
+                        <span class="journey-window-controls" aria-hidden="true"><i>—</i><i>□</i><i>×</i></span>
+                    </div>
+                    <div class="journey-window-toolbar"><span>最新优先</span><span>4 条记录</span></div>
+                    <ol class="timeline" tabindex="0" aria-label="从新到旧排列的经历记录">
+                        <li class="current">
+                            <span class="year">NOW</span>
+                            <div><h3>CURRENT / UNRESOLVED</h3><p>继续学习 C++，准备考研，也继续修改这个仍未定稿的空间。</p></div>
+                        </li>
+                        <li>
+                            <span class="year">2025</span>
+                            <div><h3>OUTSIDE / CONTACT</h3><p>接触实习与真实项目，第一次看见课堂之外的约束。</p></div>
+                        </li>
+                        <li>
+                            <span class="year">2024</span>
+                            <div><h3>ALGORITHM / PRACTICE</h3><p>参加 ACM 相关训练，重新练习如何描述和拆解问题。</p></div>
+                        </li>
+                        <li>
+                            <span class="year">2023</span>
+                            <div><h3>UNIVERSITY / ENTRY</h3><p>进入大学，开始系统接触计算机与软件开发。</p></div>
+                        </li>
+                    </ol>
+                </div>
             </div>
         </section>
 

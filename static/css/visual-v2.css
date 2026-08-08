@@ -11,6 +11,15 @@
     --header-bg: rgba(9, 12, 14, .9);
     --warm: #a85f58;
     --accent-ink: #061014;
+    --window-frame: #66757a;
+    --window-title-start: #00637a;
+    --window-title-end: #12343e;
+    --window-face: #0c1114;
+    --window-toolbar: #151c20;
+    --window-control: #b8c0c3;
+    --window-shadow: rgba(0, 0, 0, .22);
+    --window-scroll-track: #11181b;
+    --window-scroll-thumb: #526267;
     color-scheme: dark;
 }
 
@@ -25,6 +34,15 @@
     --muted: #5f666b;
     --header-bg: rgba(206, 209, 215, .9);
     --accent-ink: #f2f5f4;
+    --window-frame: #70787c;
+    --window-title-start: #005f73;
+    --window-title-end: #3a7681;
+    --window-face: #d7d9dc;
+    --window-toolbar: #c5c8cc;
+    --window-control: #e2e3df;
+    --window-shadow: rgba(61, 68, 72, .12);
+    --window-scroll-track: #c3c7ca;
+    --window-scroll-thumb: #707a7e;
     color-scheme: light;
 }
 
@@ -251,6 +269,8 @@ body {
 .project-card-featured { background: color-mix(in srgb, var(--paper) 1.5%, transparent); }
 
 .journey-intro p, .timeline p { color: var(--muted); }
+.journey-window { border-color: var(--window-frame); background: var(--window-face); box-shadow: 14px 16px 0 var(--window-shadow); }
+.journey-window-toolbar { border-color: var(--window-frame); background: var(--window-toolbar); }
 .timeline li { border-top-color: var(--line); }
 .timeline li::before { background: var(--ink); border-color: var(--muted); box-shadow: none; }
 .timeline li.current::before { background: var(--blue); border-color: var(--blue); box-shadow: none; }
