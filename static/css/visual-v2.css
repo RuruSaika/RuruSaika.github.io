@@ -209,13 +209,6 @@ body {
 .portrait-card::before, .portrait-card::after { display: none; }
 .portrait-card img { filter: saturate(.68) contrast(1.03) brightness(.82); }
 .portrait-card figcaption { color: var(--muted); }
-.about-study-link { border-color: var(--line); }
-.about-study-link > span { color: var(--muted); }
-.about-study-link strong { font-weight: 550; }
-.about-study-link i { color: var(--blue); }
-.about-study-link:hover, .about-study-link:focus-visible { border-color: var(--blue); }
-[data-theme="light"] .about-study-link strong { font-family: Georgia, "Noto Serif SC", "Songti SC", serif; }
-
 .study-portal-card {
     min-height: 540px;
     grid-template-columns: 1.08fr .92fr;
@@ -224,7 +217,6 @@ body {
     color: var(--paper);
     box-shadow: none;
 }
-.study-portal-card:hover { transform: translateY(-3px); box-shadow: 0 24px 65px rgba(0, 0, 0, .2); }
 .study-portal-copy::after { display: none; }
 .study-portal-copy > p { color: var(--blue); font-weight: 550; }
 .study-portal-copy h2 { font-weight: 580; }
@@ -241,6 +233,10 @@ body {
 .study-ring b { border-radius: 50%; background: var(--paper); color: var(--ink); transform: none; }
 .study-ring i { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); box-shadow: none; }
 .study-coordinate { color: var(--muted); }
+.study-portal-link { border-color: var(--line); background: color-mix(in srgb, var(--ink) 82%, transparent); color: var(--paper); }
+.study-portal-link i { color: var(--blue); }
+.study-portal-link:hover, .study-portal-link:focus-visible { border-color: var(--blue); background: var(--blue); color: var(--accent-ink); }
+.study-portal-link:hover i, .study-portal-link:focus-visible i { color: var(--accent-ink); }
 
 .work-heading-row > p { color: var(--muted); }
 .project-card { min-height: 250px; border-top-color: var(--line); transition: background .25s ease; }
@@ -273,7 +269,6 @@ body {
 .contact-row > p { color: var(--muted); }
 .contact-links a { border-bottom-color: var(--line); }
 .contact-links i { color: var(--blue); }
-.contact blockquote { color: var(--muted); border-left-color: var(--warm); }
 .site-footer { color: var(--muted); }
 
 @media (max-width: 980px) {
