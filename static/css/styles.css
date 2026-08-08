@@ -273,7 +273,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .stack-grid i { position: absolute; top: 1.35rem; right: 1.35rem; font-style: normal; }
 .stack-grid div:hover span, .stack-grid div:hover i { color: var(--lime); }
 
-.contact { position: relative; width: 100%; max-width: var(--max-width); height: calc(100svh - 100px); min-height: 0; margin: 0 auto; padding: clamp(4rem, 8vh, 7rem) var(--pad) clamp(2rem, 4vh, 4rem); display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.site-ending { width: 100%; height: 100svh; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) 100px; overflow: hidden; }
+.contact { position: relative; width: 100%; max-width: var(--max-width); height: auto; min-height: 0; margin: 0 auto; padding: clamp(4rem, 8vh, 7rem) var(--pad) clamp(2rem, 4vh, 4rem); display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
 .contact > *:not(.contact-grid) { position: relative; z-index: 1; }
 .contact h2 { margin: 0; font-size: clamp(4rem, 10vw, 10.5rem); line-height: .88; letter-spacing: -.075em; }
 .contact h2 span { color: var(--blue); }
@@ -284,7 +285,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .contact-links i { color: var(--lime); font-size: 1.2rem; font-style: normal; transition: transform .2s ease; }
 .contact-links a:hover i { transform: translate(.25rem, -.25rem); }
 
-.site-footer { max-width: var(--max-width); height: 100px; min-height: 100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 2rem var(--pad); border-top: 1px solid var(--line); color: var(--muted); font: 600 .56rem/1.6 ui-monospace, "Cascadia Code", monospace; letter-spacing: .1em; }
+.site-footer { width: 100%; max-width: var(--max-width); height: 100%; min-height: 0; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 2rem var(--pad); border-top: 1px solid var(--line); color: var(--muted); font: 600 .56rem/1.6 ui-monospace, "Cascadia Code", monospace; letter-spacing: .1em; }
 .site-footer div { display: flex; gap: 2.5rem; }
 .site-footer a { text-decoration: none; color: var(--paper); }
 
@@ -345,7 +346,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
     .timeline li { grid-template-columns: 58px 1fr; }
     .stack-grid { grid-template-columns: 1fr; }
     .journey-window { height: min(68svh, 540px); min-height: 400px; }
-    .contact { height: calc(100svh - 100px); min-height: 0; padding-block: clamp(3rem, 7vh, 5rem) 2rem; }
+    .contact { height: auto; min-height: 0; padding-block: clamp(3rem, 7vh, 5rem) 2rem; }
     .contact h2 { font-size: clamp(3.5rem, 18vw, 7rem); }
     .contact-row { grid-template-columns: 1fr; }
     .site-footer { align-items: flex-end; }

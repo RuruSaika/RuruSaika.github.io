@@ -63,7 +63,7 @@ function initAdmin() {
   async function loadPosts(selectId) {
     const response = await fetch(apiUrl("/api/study/admin/posts"));
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "记录加载失败");
+    if (!response.ok) throw new Error(data.error || "文章加载失败");
     state.posts = data.posts || [];
     renderPostList();
     if (selectId) {
@@ -77,13 +77,13 @@ function initAdmin() {
     const filtered = state.posts.filter((post) => [post.title, post.summary, post.subject, ...(post.tags || [])].join(" ").toLowerCase().includes(query));
     $("[data-post-total]").textContent = state.posts.length;
     if (!filtered.length) {
-      postList.innerHTML = `<div class="post-list-empty">${state.posts.length ? "没有找到匹配的记录。" : "还没有记录。点击上方按钮，写下第一篇。"}</div>`;
+      postList.innerHTML = `<div class="post-list-empty">${state.posts.length ? "没有找到匹配的文章。" : "还没有文章。点击上方按钮，写下第一篇。"}</div>`;
       return;
     }
     postList.innerHTML = filtered.map((post) => `
       <button class="sidebar-post ${state.current?.id === post.id ? "active" : ""}" type="button" data-open-id="${post.id}">
         <div class="sidebar-post-meta"><span>${escapeHtml(post.subject)}</span><span class="${post.status === "published" ? "published-badge" : "draft-badge"}">${post.status === "published" ? "已发布" : "草稿"}</span></div>
-        <h3>${escapeHtml(post.title || "未命名记录")}</h3>
+        <h3>${escapeHtml(post.title || "未命名文章")}</h3>
         <div class="sidebar-post-meta"><span>${formatDate(post.updatedAt)}</span><span>REV. ${post.revision || 1}</span></div>
       </button>
     `).join("");
@@ -91,7 +91,7 @@ function initAdmin() {
 
   function newPost() {
     if (!confirmDiscard()) return;
-    state.current = { id: "", status: "draft", subject: "数学", tags: [], isPinned: false };
+    state.current = { id: "", status: "draft", subject: "生活", tags: [], isPinned: false };
     fillForm(state.current);
     form.hidden = false;
     editorEmpty.hidden = true;
@@ -120,12 +120,12 @@ function initAdmin() {
     $("[data-title]").value = post.title || "";
     $("[data-summary]").value = post.summary || "";
     content.value = post.content || "";
-    $("[data-subject]").value = post.subject || "其他";
+    $("[data-subject]").value = post.subject || "其它";
     $("[data-tags]").value = (post.tags || []).join("，");
     $("[data-pinned]").checked = Boolean(post.isPinned);
     $("[data-status-label]").textContent = post.status === "published" ? `已发布 · ${formatDate(post.publishedAt)}` : post.id ? "草稿" : "新草稿";
     $(".status-dot").classList.toggle("published", post.status === "published");
-    $("[data-publish]").textContent = post.status === "published" ? "更新发布" : "发布记录";
+    $("[data-publish]").textContent = post.status === "published" ? "更新发布" : "发布文章";
     preview.innerHTML = renderMarkdown(content.value);
     setPreview(false);
   }
@@ -161,7 +161,7 @@ function initAdmin() {
       localStorage.removeItem("ruru-study-unsaved");
       markDirty(false);
       await loadPosts(data.post.id);
-      toast(status === "published" ? "记录已发布。" : "草稿已保存。");
+      toast(status === "published" ? "文章已发布。" : "草稿已保存。");
     } catch (error) {
       $("[data-save-state]").textContent = "保存失败";
       toast(error.message || "保存失败，请稍后重试。", true);
@@ -181,13 +181,13 @@ function initAdmin() {
     editorEmpty.hidden = false;
     markDirty(false);
     await loadPosts();
-    toast("记录已归档，数据仍然保留。 ");
+    toast("文章已归档，数据仍然保留。 ");
   }
 
   async function deleteCurrent() {
     if (!state.current?.id) return;
-    const title = state.current.title || "未命名记录";
-    if (!confirm(`确定永久删除“${title}”吗？\n\n记录正文和关联图片都会被移除，删除后无法恢复。`)) return;
+    const title = state.current.title || "未命名文章";
+    if (!confirm(`确定永久删除“${title}”吗？\n\n文章正文和关联图片都会被移除，删除后无法恢复。`)) return;
     if (prompt("这是最后一次确认。请输入“永久删除”继续：") !== "永久删除") {
       toast("已取消永久删除。");
       return;
@@ -201,7 +201,7 @@ function initAdmin() {
     localStorage.removeItem("ruru-study-unsaved");
     markDirty(false);
     await loadPosts();
-    toast(data.deletedAssets ? `记录已永久删除，同时清理了 ${data.deletedAssets} 张图片。` : "记录已永久删除。");
+    toast(data.deletedAssets ? `文章已永久删除，同时清理了 ${data.deletedAssets} 张图片。` : "文章已永久删除。");
   }
 
   function markDirty(dirty = true) {
@@ -250,7 +250,7 @@ function initAdmin() {
         const response = await fetch(apiUrl("/api/study/admin/upload"), { method: "POST", body });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "图片上传失败");
-        const alt = file.name.replace(/\.[^.]+$/, "") || "错题图片";
+        const alt = file.name.replace(/\.[^.]+$/, "") || "文章图片";
         insertAtCursor(`\n![${alt}](${data.asset.token})\n`);
       } catch (error) {
         toast(error.message || "图片上传失败。", true);

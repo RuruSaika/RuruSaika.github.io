@@ -4,7 +4,7 @@ const countRoot = document.querySelector("[data-count]");
 const searchInput = document.querySelector("[data-search]");
 const filterRoot = document.querySelector("[data-filters]");
 let allPosts = [];
-let activeSubject = "全部";
+let activeCategory = "全部";
 
 document.querySelector("[data-year]").textContent = new Date().getFullYear();
 
@@ -16,7 +16,7 @@ async function loadPosts() {
     allPosts = data.posts || [];
     renderPosts();
   } catch {
-    postsRoot.innerHTML = `<div class="empty-board"><div><strong>书桌暂时没有连接上</strong><p>学习记录服务可能正在更新，请稍后再来看看。</p></div></div>`;
+    postsRoot.innerHTML = `<div class="empty-board"><div><strong>Blog 暂时没有连接上</strong><p>文章服务可能正在更新，请稍后再来看看。</p></div></div>`;
     countRoot.textContent = "OFFLINE";
   }
 }
@@ -24,14 +24,14 @@ async function loadPosts() {
 function renderPosts() {
   const query = searchInput.value.trim().toLowerCase();
   const filtered = allPosts.filter((post) => {
-    const matchesSubject = activeSubject === "全部" || post.subject === activeSubject;
+    const matchesCategory = activeCategory === "全部" || post.subject === activeCategory;
     const haystack = [post.title, post.summary, post.subject, ...(post.tags || [])].join(" ").toLowerCase();
-    return matchesSubject && (!query || haystack.includes(query));
+    return matchesCategory && (!query || haystack.includes(query));
   });
 
-  countRoot.textContent = `${String(filtered.length).padStart(2, "0")} RECORDS`;
+  countRoot.textContent = `${String(filtered.length).padStart(2, "0")} ARTICLES`;
   if (!filtered.length) {
-    postsRoot.innerHTML = `<div class="empty-board"><div><strong>${allPosts.length ? "没有找到匹配的记录" : "第一篇记录正在路上"}</strong><p>${allPosts.length ? "换个关键词或科目试试。" : "这里会慢慢积累思考、错题与复盘。"}</p></div></div>`;
+    postsRoot.innerHTML = `<div class="empty-board"><div><strong>${allPosts.length ? "没有找到匹配的文章" : "第一篇文章正在路上"}</strong><p>${allPosts.length ? "换个关键词或分类试试。" : "这里会慢慢积累生活片段、学习记录与其它随笔。"}</p></div></div>`;
     return;
   }
 
@@ -39,7 +39,7 @@ function renderPosts() {
     <a class="post-card" href="post.html?slug=${encodeURIComponent(post.slug)}">
       <div class="post-card-meta"><span class="subject-badge">${escapeHtml(post.subject)}</span><span>${formatDate(post.publishedAt)}</span></div>
       <h3>${escapeHtml(post.title)}</h3>
-      <p>${escapeHtml(post.summary || "这篇记录暂时没有摘要。")}</p>
+      <p>${escapeHtml(post.summary || "这篇文章暂时没有摘要。")}</p>
       <div class="post-card-bottom">
         <div class="post-tags">${(post.tags || []).slice(0, 4).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
         <span class="post-arrow" aria-hidden="true">↗</span>
@@ -50,9 +50,9 @@ function renderPosts() {
 
 searchInput.addEventListener("input", renderPosts);
 filterRoot.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-subject]");
+  const button = event.target.closest("[data-category]");
   if (!button) return;
-  activeSubject = button.dataset.subject;
+  activeCategory = button.dataset.category;
   filterRoot.querySelectorAll("button").forEach((item) => item.classList.toggle("active", item === button));
   renderPosts();
 });

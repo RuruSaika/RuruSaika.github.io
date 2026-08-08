@@ -1,17 +1,22 @@
-# Study board architecture
+# Blog architecture
 
-The study board is intentionally separated into four replaceable layers so a
-future portfolio redesign does not endanger the accumulated notes.
+The Blog is intentionally separated into four replaceable layers so a future
+portfolio redesign does not endanger the accumulated articles.
 
 ## Boundaries
 
-- `study/` is the presentation layer. It contains the public board, article
-  reader, private editor, and a small Markdown renderer.
+- `study/` is the presentation layer. The path is retained for URL and storage
+  compatibility, while the product presented there is Ruru's general Blog. It
+  contains the public index, article reader, private editor, and a small
+  Markdown renderer.
 - `worker/index.js` is the API and authorization boundary. Public routes are
   read-only; every write route verifies the signed-in ChatGPT user server-side
   against the configured owner email.
 - D1 is the durable content store. Posts are Markdown records with stable IDs,
-  slugs, status, revision, timestamps, subject, and tags.
+  slugs, status, revision, timestamps, category, and tags. The existing
+  `subject` field is kept as an internal compatibility boundary; the public
+  categories are `生活`, `学习`, and `其它`, and legacy study subjects normalize
+  to `学习` without destructive data migration.
 - R2 stores uploaded images. Markdown refers to images through portable
   `asset://<id>` tokens rather than deployment-specific URLs.
 
@@ -23,7 +28,7 @@ can be replaced independently as long as it consumes the documented API shape.
 
 ## Access model
 
-The public board can be read anonymously. The editor lives on the Sites origin
+The public Blog can be read anonymously. The editor lives on the Sites origin
 and uses dispatch-owned ChatGPT sign-in. Write endpoints require both forwarded
 identity headers and an exact match with the server-side `ADMIN_EMAIL` value.
 Client-side hiding is never treated as authorization.

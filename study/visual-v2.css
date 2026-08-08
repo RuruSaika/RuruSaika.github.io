@@ -1,4 +1,4 @@
-/* Living public study archive skin. */
+/* Living public Blog skin. */
 :root {
   --bg: #090c0e;
   --surface: #101518;
@@ -28,7 +28,7 @@ body {
 .admin-entry { border-radius: 3px; }
 .admin-entry:hover { border-color: var(--blue); }
 
-.study-hero { min-height: 68svh; display: grid; align-content: center; border-bottom: 1px solid var(--line); }
+.study-hero { min-height: calc(100svh - 76px); border-bottom: 1px solid var(--line); }
 .study-hero::before { display: none; }
 .study-hero::after {
   width: min(32vw, 390px);
@@ -36,10 +36,26 @@ body {
   background: radial-gradient(circle, rgba(0, 211, 255, .045), transparent 68%);
 }
 .kicker { color: var(--blue); font-weight: 550; }
-.study-hero h1 { max-width: 1040px; font-weight: 580; line-height: .95; }
+.study-hero h1 { max-width: 850px; font-weight: 580; line-height: .94; }
 .study-hero h1 span { color: var(--ink); -webkit-text-stroke: 0; }
 .hero-note { max-width: 680px; color: var(--muted); line-height: 1.9; }
 .hero-meta span { border-radius: 3px; color: var(--muted); }
+.hero-index-link { border-color: var(--line); font-weight: 550; }
+.hero-index-link:hover { color: var(--blue); }
+.blog-hero-visual::before {
+  content: "";
+  position: absolute;
+  width: 80%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 211, 255, .06), transparent 68%);
+}
+.blog-sheet { border-color: var(--line); background: color-mix(in srgb, var(--surface) 95%, transparent); }
+.blog-sheet-back { background: color-mix(in srgb, var(--ink) 82%, var(--surface)); }
+.blog-sheet-main { box-shadow: 15px 18px 0 rgba(0, 0, 0, .16); }
+.blog-sheet-head span:first-child { color: var(--blue); }
+.blog-sheet-main > p { color: var(--ink); font-weight: 500; }
+.blog-sheet li > strong { font-weight: 560; }
 
 .board-toolbar { border-color: var(--line); }
 .search-box input { border-radius: 3px; background: rgba(255, 255, 255, .025); }
@@ -73,5 +89,5 @@ body {
 .back-link:hover { color: var(--blue); }
 
 @media (max-width: 560px) {
-  .study-hero { min-height: 72svh; padding-top: 7rem; }
+  .study-hero { min-height: calc(100svh - 66px); }
 }

@@ -6,7 +6,8 @@ const ALLOWED_IMAGE_TYPES = new Map([
   ["image/webp", "webp"],
   ["image/gif", "gif"],
 ]);
-const ALLOWED_SUBJECTS = new Set(["数学", "英语", "政治", "专业课", "复盘", "其他"]);
+const ALLOWED_CATEGORIES = new Set(["生活", "学习", "其它"]);
+const LEGACY_STUDY_CATEGORIES = new Set(["数学", "英语", "政治", "专业课", "复盘"]);
 let schemaPromise;
 
 export default {
@@ -35,18 +36,38 @@ async function handleApi(request, env, url) {
   }
 
   if (url.pathname === "/api/study/posts" && request.method === "GET") {
-    const subject = cleanText(url.searchParams.get("subject"), 30);
+    const requestedCategory = normalizeRequestedCategory(url.searchParams.get("category") || url.searchParams.get("subject"));
     const limit = clamp(Number(url.searchParams.get("limit")) || 50, 1, 100);
-    const query = subject && ALLOWED_SUBJECTS.has(subject)
-      ? env.DB.prepare(`
+    let query;
+    if (requestedCategory === "学习") {
+      query = env.DB.prepare(`
           SELECT id, slug, title, summary, subject, tags_json, is_pinned,
                  published_at, updated_at
           FROM study_posts
-          WHERE status = 'published' AND subject = ?
+          WHERE status = 'published' AND subject IN ('学习', '数学', '英语', '政治', '专业课', '复盘')
           ORDER BY is_pinned DESC, published_at DESC
           LIMIT ?
-        `).bind(subject, limit)
-      : env.DB.prepare(`
+        `).bind(limit);
+    } else if (requestedCategory === "其它") {
+      query = env.DB.prepare(`
+          SELECT id, slug, title, summary, subject, tags_json, is_pinned,
+                 published_at, updated_at
+          FROM study_posts
+          WHERE status = 'published' AND subject IN ('其它', '其他')
+          ORDER BY is_pinned DESC, published_at DESC
+          LIMIT ?
+        `).bind(limit);
+    } else if (requestedCategory === "生活") {
+      query = env.DB.prepare(`
+          SELECT id, slug, title, summary, subject, tags_json, is_pinned,
+                 published_at, updated_at
+          FROM study_posts
+          WHERE status = 'published' AND subject = '生活'
+          ORDER BY is_pinned DESC, published_at DESC
+          LIMIT ?
+        `).bind(limit);
+    } else {
+      query = env.DB.prepare(`
           SELECT id, slug, title, summary, subject, tags_json, is_pinned,
                  published_at, updated_at
           FROM study_posts
@@ -54,6 +75,7 @@ async function handleApi(request, env, url) {
           ORDER BY is_pinned DESC, published_at DESC
           LIMIT ?
         `).bind(limit);
+    }
     const result = await query.all();
     return json({ posts: result.results.map(serializePost) }, 200, cors);
   }
@@ -70,7 +92,7 @@ async function handleApi(request, env, url) {
     `).bind(slug).first();
     return post
       ? json({ post: serializePost(post) }, 200, cors)
-      : json({ error: "没有找到这篇记录。" }, 404, cors);
+      : json({ error: "没有找到这篇文章。" }, 404, cors);
   }
 
   const assetMatch = url.pathname.match(/^\/api\/study\/assets\/([a-f0-9-]+)$/i);
@@ -127,7 +149,7 @@ async function handleApi(request, env, url) {
   if (url.pathname === "/api/study/admin/posts" && request.method === "POST") {
     let payload;
     try { payload = await request.json(); }
-    catch { return json({ error: "记录格式无效。" }, 400); }
+    catch { return json({ error: "文章格式无效。" }, 400); }
     const now = new Date().toISOString();
     const id = validId(payload.id) ? payload.id : crypto.randomUUID();
     const existing = validId(payload.id)
@@ -137,7 +159,7 @@ async function handleApi(request, env, url) {
     if (!title) return json({ error: "标题不能为空。" }, 400);
     const content = cleanText(payload.content, 200000);
     const summary = cleanText(payload.summary, 400);
-    const subject = ALLOWED_SUBJECTS.has(payload.subject) ? payload.subject : "其他";
+    const subject = normalizeCategory(payload.subject);
     const tags = normalizeTags(payload.tags);
     const status = ["draft", "published"].includes(payload.status) ? payload.status : "draft";
     const isPinned = payload.isPinned ? 1 : 0;
@@ -188,7 +210,7 @@ async function handleApi(request, env, url) {
   if (deleteMatch && request.method === "DELETE") {
     const postId = deleteMatch[1];
     const post = await env.DB.prepare("SELECT id, content FROM study_posts WHERE id = ? LIMIT 1").bind(postId).first();
-    if (!post) return json({ error: "没有找到要删除的记录。" }, 404);
+    if (!post) return json({ error: "没有找到要删除的文章。" }, 404);
 
     const linked = await env.DB.prepare(`
       SELECT id, post_id, r2_key FROM study_assets WHERE post_id = ?
@@ -246,7 +268,7 @@ async function handleApi(request, env, url) {
       env.DB.prepare("SELECT id, post_id, original_name, content_type, size_bytes, alt_text, created_at FROM study_assets ORDER BY created_at ASC").all(),
     ]);
     const headers = new Headers(JSON_HEADERS);
-    headers.set("content-disposition", `attachment; filename="ruru-study-export-${new Date().toISOString().slice(0, 10)}.json"`);
+    headers.set("content-disposition", `attachment; filename="ruru-blog-export-${new Date().toISOString().slice(0, 10)}.json"`);
     return new Response(JSON.stringify({ exportedAt: new Date().toISOString(), posts: posts.results, assets: assets.results }, null, 2), { headers });
   }
 
@@ -338,7 +360,7 @@ function serializePost(row) {
     title: row.title,
     summary: row.summary,
     content: row.content,
-    subject: row.subject,
+    subject: normalizeCategory(row.subject),
     tags,
     status: row.status,
     isPinned: Boolean(row.is_pinned),
@@ -352,6 +374,21 @@ function serializePost(row) {
 function normalizeTags(value) {
   const list = Array.isArray(value) ? value : String(value || "").split(/[,，]/);
   return [...new Set(list.map((tag) => cleanText(tag, 24)).filter(Boolean))].slice(0, 10);
+}
+
+function normalizeCategory(value) {
+  const category = cleanText(value, 30);
+  if (LEGACY_STUDY_CATEGORIES.has(category)) return "学习";
+  if (category === "其他") return "其它";
+  return ALLOWED_CATEGORIES.has(category) ? category : "其它";
+}
+
+function normalizeRequestedCategory(value) {
+  const category = cleanText(value, 30);
+  if (!category) return "";
+  if (LEGACY_STUDY_CATEGORIES.has(category)) return "学习";
+  if (category === "其他") return "其它";
+  return ALLOWED_CATEGORIES.has(category) ? category : "";
 }
 
 function cleanText(value, max = 1000) {

@@ -3,61 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="RuruSaika 的学习档案：错题、思考与阶段性的自我修正。">
+  <meta name="description" content="Ruru 的 Blog：生活、学习，以及偶尔值得记下来的其它片段。">
   <meta name="theme-color" content="#080b0e">
   <meta name="rurusaika-style-version" content="{{STYLE_VERSION}}">
-  <meta property="og:title" content="Study Log — RuruSaika">
-  <meta property="og:description" content="把想明白的过程留下。">
+  <meta property="og:title" content="Ruru's Blog">
+  <meta property="og:description" content="收下生活里值得记住的小事，也整理学习中逐渐想明白的问题。">
   <meta property="og:image" content="https://rurusaika.github.io/static/img/study-og.png">
   <meta name="twitter:card" content="summary_large_image">
-  <title>Study Log — RuruSaika</title>
+  <title>Ruru's Blog — RuruSaika</title>
   <link rel="icon" href="../static/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v={{STYLE_VERSION}}-2">
   <link rel="stylesheet" href="visual-v2.css?v={{STYLE_VERSION}}">
-  <script src="shared.js" defer></script>
-  <script src="board.js" defer></script>
+  <script src="shared.js?v={{STYLE_VERSION}}" defer></script>
+  <script src="board.js?v={{STYLE_VERSION}}" defer></script>
 </head>
 <body>
   <div class="study-shell">
-    <nav class="study-nav" aria-label="学习记录导航">
-      <a class="study-brand" href="../"><i>R/</i><span>RuruSaika</span></a>
+    <nav class="study-nav" aria-label="Blog 导航">
+      <a class="study-brand" href="./"><i>R/</i><span>Ruru's Blog</span></a>
       <div class="study-nav-links">
         <a href="../">个人主页</a>
-        <a href="#records">全部记录</a>
-        <a class="admin-entry" href="admin/">写记录</a>
+        <a href="#records">全部文章</a>
+        <a class="admin-entry" href="admin/">写文章</a>
       </div>
     </nav>
 
     <header class="study-hero">
-      <p class="kicker">考研学习记录</p>
-      <h1>把每一次<br><span>想明白的过程留下。</span></h1>
-      <p class="hero-note">这里保存错题、思考和阶段复盘。记录当时卡住的地方、后来找到的解释，以及下一次可以怎样判断。</p>
-      <div class="hero-meta"><span>错题</span><span>笔记</span><span>复盘</span><span>持续整理</span></div>
+      <div class="blog-hero-copy">
+        <p class="kicker">RURU'S BLOG / 随手记</p>
+        <h1>欢迎来到<br><span>Ruru的Blog!</span></h1>
+        <p class="hero-note">这里收下生活里值得记住的小事，也整理学习中逐渐想明白的问题。没有固定更新频率，只在确实有话想留下的时候写一点。</p>
+        <a class="hero-index-link" href="#records"><span>从最近写下的开始</span><i aria-hidden="true">↓</i></a>
+      </div>
+      <aside class="blog-hero-visual" aria-label="Blog 内容分类">
+        <div class="blog-sheet blog-sheet-back" aria-hidden="true"></div>
+        <div class="blog-sheet blog-sheet-main">
+          <div class="blog-sheet-head"><span>R/ BLOG</span><span>私人刊物</span></div>
+          <p>一些日常，一些正在想明白的事。</p>
+          <ol>
+            <li><span>01</span><strong>生活</strong><small>片段与感受</small></li>
+            <li><span>02</span><strong>学习</strong><small>笔记与复盘</small></li>
+            <li><span>03</span><strong>其它</strong><small>尚未归类</small></li>
+          </ol>
+          <div class="blog-sheet-foot"><span>持续书写中</span><i aria-hidden="true"></i></div>
+        </div>
+        <span class="blog-visual-note" aria-hidden="true">LIFE · STUDY · ELSE</span>
+      </aside>
     </header>
 
     <main id="records">
       <div class="board-toolbar">
-        <label class="search-box"><span class="visually-hidden">搜索记录</span><input type="search" data-search placeholder="搜索标题、摘要或标签…" autocomplete="off"></label>
-        <div class="subject-filters" data-filters aria-label="按科目筛选">
-          <button class="filter-button active" type="button" data-subject="全部">全部</button>
-          <button class="filter-button" type="button" data-subject="数学">数学</button>
-          <button class="filter-button" type="button" data-subject="英语">英语</button>
-          <button class="filter-button" type="button" data-subject="政治">政治</button>
-          <button class="filter-button" type="button" data-subject="专业课">专业课</button>
-          <button class="filter-button" type="button" data-subject="复盘">复盘</button>
+        <label class="search-box"><span class="visually-hidden">搜索文章</span><input type="search" data-search placeholder="搜索标题、摘要或标签…" autocomplete="off"></label>
+        <div class="subject-filters" data-filters aria-label="按分类筛选">
+          <button class="filter-button active" type="button" data-category="全部">全部</button>
+          <button class="filter-button" type="button" data-category="生活">生活</button>
+          <button class="filter-button" type="button" data-category="学习">学习</button>
+          <button class="filter-button" type="button" data-category="其它">其它</button>
         </div>
       </div>
 
       <div class="board-summary">
-        <h2>记录索引</h2>
+        <h2>文章索引</h2>
         <p data-count>LOADING...</p>
       </div>
       <section class="post-grid" data-posts aria-live="polite">
-        <div class="loading-board">正在整理书桌…</div>
+        <div class="loading-board">正在整理文章…</div>
       </section>
     </main>
 
-    <footer class="study-footer"><span>© <span data-year></span> RURUSAIKA / 学习记录</span><span>STYLE {{STYLE_VERSION}}</span></footer>
+    <footer class="study-footer"><span>© <span data-year></span> RURUSAIKA / BLOG</span><span>STYLE {{STYLE_VERSION}}</span></footer>
   </div>
 </body>
 </html>
