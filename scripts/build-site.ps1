@@ -2,12 +2,17 @@ $ErrorActionPreference = "Stop"
 
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
 $distRoot = Join-Path $projectRoot "dist"
-$preferencePath = Join-Path $projectRoot "docs\visual-preferences.md"
+$workspaceRoot = (Resolve-Path -LiteralPath (Join-Path $projectRoot "..")).Path
+$preferencePath = Join-Path $workspaceRoot "visual-preferences\visual-preferences.md"
+
+if (-not (Test-Path -LiteralPath $preferencePath -PathType Leaf)) {
+    throw "Could not find the local visual preference file at $preferencePath."
+}
 
 $preferenceText = [IO.File]::ReadAllText($preferencePath, [Text.Encoding]::UTF8)
 $styleVersionMatch = [regex]::Match($preferenceText, '(?m)^style_version:\s*(\d{4}\.\d{2}\.\d{2}\.\d+)\s*$')
 if (-not $styleVersionMatch.Success) {
-    throw "Could not read a YYYY.MM.DD.N style_version from docs/visual-preferences.md."
+    throw "Could not read a YYYY.MM.DD.N style_version from $preferencePath."
 }
 $styleVersion = $styleVersionMatch.Groups[1].Value
 
@@ -23,7 +28,6 @@ $clientRoot = New-Item -ItemType Directory -Force -Path (Join-Path $distRoot "cl
 $serverRoot = New-Item -ItemType Directory -Force -Path (Join-Path $distRoot "server")
 
 Copy-Item -LiteralPath (Join-Path $projectRoot "index.html") -Destination $clientRoot.FullName
-Copy-Item -LiteralPath (Join-Path $projectRoot "old_index.html") -Destination $clientRoot.FullName
 Copy-Item -LiteralPath (Join-Path $projectRoot "static") -Destination $clientRoot.FullName -Recurse
 Copy-Item -LiteralPath (Join-Path $projectRoot "study") -Destination $clientRoot.FullName -Recurse
 Copy-Item -LiteralPath (Join-Path $projectRoot "worker\index.js") -Destination (Join-Path $serverRoot.FullName "index.js")
