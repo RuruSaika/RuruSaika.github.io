@@ -3,14 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="RuruSaika 的考研学习记录：思考、错题与阶段复盘。">
-  <meta name="theme-color" content="#f4f1e8">
+  <meta name="description" content="RuruSaika 的学习档案：错题、思考与阶段性的自我修正。">
+  <meta name="theme-color" content="#080b0e">
+  <meta name="rurusaika-style-version" content="{{STYLE_VERSION}}">
   <meta property="og:title" content="Study Log — RuruSaika">
-  <meta property="og:description" content="把错题留下，把思路理清，把漫长的路走成可以回看的轨迹。">
+  <meta property="og:description" content="把想明白的过程留下。">
   <meta property="og:image" content="https://rurusaika.github.io/static/img/study-og.png">
   <meta name="twitter:card" content="summary_large_image">
   <title>Study Log — RuruSaika</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="visual-v2.css?v={{STYLE_VERSION}}">
   <script src="shared.js" defer></script>
   <script src="board.js" defer></script>
 </head>
@@ -26,10 +28,10 @@
     </nav>
 
     <header class="study-hero">
-      <p class="kicker">POSTGRADUATE STUDY LOG / 研途记录</p>
-      <h1>把不会的，<br><span>变成会的。</span></h1>
-      <p class="hero-note">这里保存考研路上的错题、思考和阶段复盘。它不是一份完美答案，而是一条持续修正、不断接近目标的轨迹。</p>
-      <div class="hero-meta"><span>MISTAKES</span><span>THOUGHTS</span><span>REVIEW</span><span>KEEP MOVING</span></div>
+      <p class="kicker">考研学习记录</p>
+      <h1>把每一次<br><span>想明白的过程留下。</span></h1>
+      <p class="hero-note">这里保存错题、思考和阶段复盘。记录当时卡住的地方、后来找到的解释，以及下一次可以怎样判断。</p>
+      <div class="hero-meta"><span>错题</span><span>笔记</span><span>复盘</span><span>持续整理</span></div>
     </header>
 
     <main id="records">
@@ -46,7 +48,7 @@
       </div>
 
       <div class="board-summary">
-        <h2>学习记录</h2>
+        <h2>记录索引</h2>
         <p data-count>LOADING...</p>
       </div>
       <section class="post-grid" data-posts aria-live="polite">
@@ -54,7 +56,7 @@
       </section>
     </main>
 
-    <footer class="study-footer"><span>© <span data-year></span> RURUSAIKA / STUDY LOG</span><span>慢一点没关系，别停下来。</span></footer>
+    <footer class="study-footer"><span>© <span data-year></span> RURUSAIKA / 学习记录</span><span>STYLE {{STYLE_VERSION}}</span></footer>
   </div>
 </body>
 </html>

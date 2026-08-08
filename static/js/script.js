@@ -7,12 +7,12 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 function setTheme(theme) {
     root.dataset.theme = theme;
     localStorage.setItem('ruru-theme', theme);
-    themeLabel.textContent = theme === 'light' ? 'DARK' : 'LIGHT';
+    themeLabel.textContent = theme === 'light' ? '深色' : '浅色';
     themeButton.setAttribute('aria-pressed', String(theme === 'light'));
 }
 
 const savedTheme = localStorage.getItem('ruru-theme');
-const initialTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+const initialTheme = savedTheme || 'dark';
 setTheme(initialTheme);
 
 themeButton.addEventListener('click', () => {
