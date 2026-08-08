@@ -184,6 +184,30 @@ async function handleApi(request, env, url) {
     return json({ ok: true });
   }
 
+  const deleteMatch = url.pathname.match(/^\/api\/study\/admin\/posts\/([a-f0-9-]+)$/i);
+  if (deleteMatch && request.method === "DELETE") {
+    const postId = deleteMatch[1];
+    const post = await env.DB.prepare("SELECT id, content FROM study_posts WHERE id = ? LIMIT 1").bind(postId).first();
+    if (!post) return json({ error: "没有找到要删除的记录。" }, 404);
+
+    const linked = await env.DB.prepare(`
+      SELECT id, post_id, r2_key FROM study_assets WHERE post_id = ?
+    `).bind(postId).all();
+    const tokenIds = [...new Set([...String(post.content || "").matchAll(/asset:\/\/([a-f0-9-]{36})/gi)].map((match) => match[1]))];
+    const referenced = await Promise.all(tokenIds.map((id) => env.DB.prepare(`
+      SELECT id, post_id, r2_key FROM study_assets WHERE id = ? LIMIT 1
+    `).bind(id).first()));
+    const assets = new Map();
+    [...linked.results, ...referenced.filter((asset) => asset && (!asset.post_id || asset.post_id === postId))]
+      .forEach((asset) => assets.set(asset.id, asset));
+
+    await Promise.all([...assets.values()].map((asset) => env.UPLOADS.delete(asset.r2_key)));
+    const deletes = [...assets.keys()].map((id) => env.DB.prepare("DELETE FROM study_assets WHERE id = ?").bind(id));
+    deletes.push(env.DB.prepare("DELETE FROM study_posts WHERE id = ?").bind(postId));
+    await env.DB.batch(deletes);
+    return json({ ok: true, deletedAssets: assets.size });
+  }
+
   if (url.pathname === "/api/study/admin/upload" && request.method === "POST") {
     const form = await request.formData();
     const file = form.get("file");

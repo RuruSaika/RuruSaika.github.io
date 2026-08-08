@@ -34,6 +34,9 @@ Client-side hiding is never treated as authorization.
 - `published`: visible through public APIs and the public board.
 - `archived`: hidden from both public listings and the normal editor list, but
   retained in storage and included in exports.
+- Permanent deletion is an owner-only, same-origin `DELETE` operation. It removes
+  the post from D1 and deletes its linked or Markdown-referenced image objects
+  from both D1 and R2 after an explicit two-step confirmation in the editor.
 
 Schema changes must be introduced as new files under `drizzle/`; never rewrite
 an already-deployed migration.

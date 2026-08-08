@@ -103,7 +103,8 @@
   .editor form { height: auto; }
   .editor-scroll { overflow: visible; }
   .editor-toolbar { position: sticky; z-index: 8; top: 70px; background: rgba(24,28,30,.95); backdrop-filter: blur(12px); }
-  .editor-actions .ghost-button[data-preview-toggle], .editor-actions .danger-button { display: none; }
+  .editor-toolbar { flex-wrap: wrap; }
+  .editor-actions { width: 100%; overflow-x: auto; padding-bottom: .15rem; }
   .field-row { grid-template-columns: 1fr; }
   .pin-field { grid-column: auto; }
   .upload-zone { grid-template-columns: auto 1fr; }

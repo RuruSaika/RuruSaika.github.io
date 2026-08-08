@@ -96,6 +96,7 @@ function initAdmin() {
     form.hidden = false;
     editorEmpty.hidden = true;
     $("[data-archive]").hidden = true;
+    $("[data-delete]").hidden = true;
     markDirty(false);
     $("[data-title]").focus();
     renderPostList();
@@ -109,6 +110,7 @@ function initAdmin() {
     form.hidden = false;
     editorEmpty.hidden = true;
     $("[data-archive]").hidden = false;
+    $("[data-delete]").hidden = false;
     markDirty(false);
     renderPostList();
   }
@@ -180,6 +182,26 @@ function initAdmin() {
     markDirty(false);
     await loadPosts();
     toast("记录已归档，数据仍然保留。 ");
+  }
+
+  async function deleteCurrent() {
+    if (!state.current?.id) return;
+    const title = state.current.title || "未命名记录";
+    if (!confirm(`确定永久删除“${title}”吗？\n\n记录正文和关联图片都会被移除，删除后无法恢复。`)) return;
+    if (prompt("这是最后一次确认。请输入“永久删除”继续：") !== "永久删除") {
+      toast("已取消永久删除。");
+      return;
+    }
+    const response = await fetch(apiUrl(`/api/study/admin/posts/${state.current.id}`), { method: "DELETE" });
+    const data = await response.json();
+    if (!response.ok) return toast(data.error || "永久删除失败。", true);
+    state.current = null;
+    form.hidden = true;
+    editorEmpty.hidden = false;
+    localStorage.removeItem("ruru-study-unsaved");
+    markDirty(false);
+    await loadPosts();
+    toast(data.deletedAssets ? `记录已永久删除，同时清理了 ${data.deletedAssets} 张图片。` : "记录已永久删除。");
   }
 
   function markDirty(dirty = true) {
@@ -259,6 +281,7 @@ function initAdmin() {
   $("[data-save-draft]").addEventListener("click", () => save("draft"));
   $("[data-preview-toggle]").addEventListener("click", () => setPreview(!state.preview));
   $("[data-archive]").addEventListener("click", archiveCurrent);
+  $("[data-delete]").addEventListener("click", deleteCurrent);
   document.querySelectorAll("[data-insert]").forEach((button) => button.addEventListener("click", () => insertAtCursor(button.dataset.insert)));
   document.querySelectorAll("[data-wrap]").forEach((button) => button.addEventListener("click", () => insertAtCursor(button.dataset.wrap, button.dataset.wrap)));
 

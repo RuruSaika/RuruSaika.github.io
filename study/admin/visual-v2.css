@@ -178,6 +178,8 @@
 .ghost-button { border-color: var(--admin-line); color: var(--admin-muted); }
 .ghost-button:hover { border-color: var(--admin-line-strong); color: var(--admin-text); }
 .danger-button:hover { border-color: var(--red); color: #d68880; }
+.delete-button { border-color: rgba(184, 104, 97, .42); color: #d68880; }
+.delete-button:hover { border-color: var(--red); background: rgba(184, 104, 97, .1); color: #e29a93; }
 
 .editor-scroll { max-width: 1120px; width: 100%; margin: 0 auto; }
 .editor-scroll label > span, .content-label > span { color: var(--admin-muted); font-weight: 560; }

@@ -209,6 +209,12 @@ body {
 .portrait-card::before, .portrait-card::after { display: none; }
 .portrait-card img { filter: saturate(.68) contrast(1.03) brightness(.82); }
 .portrait-card figcaption { color: var(--muted); }
+.about-study-link { border-color: var(--line); }
+.about-study-link > span { color: var(--muted); }
+.about-study-link strong { font-weight: 550; }
+.about-study-link i { color: var(--blue); }
+.about-study-link:hover, .about-study-link:focus-visible { border-color: var(--blue); }
+[data-theme="light"] .about-study-link strong { font-family: Georgia, "Noto Serif SC", "Songti SC", serif; }
 
 .study-portal-card {
     min-height: 540px;
