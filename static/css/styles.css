@@ -249,7 +249,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .journey-window-titlebar > span:first-child { display: flex; align-items: center; gap: .5rem; }
 .journey-window-titlebar b { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid rgba(255,255,255,.5); background: rgba(0,0,0,.18); color: #fff; font: 700 .52rem/1 ui-monospace, monospace; }
 .journey-window-controls { display: flex; gap: 3px; }
-.journey-window-controls i { width: 23px; height: 23px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.58); border-bottom-color: rgba(0,0,0,.42); border-right-color: rgba(0,0,0,.42); background: var(--window-control, #c7cbd0); color: #102027; font: 700 .72rem/1 Arial, sans-serif; }
+.journey-window-controls img { display: block; width: 24px; height: 24px; image-rendering: pixelated; }
 .journey-window-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 0 .8rem; border-bottom: 1px solid var(--window-frame, var(--line)); background: var(--window-toolbar, color-mix(in srgb, var(--paper) 4%, var(--ink-soft))); color: var(--muted); font: 550 .55rem/1 ui-monospace, monospace; letter-spacing: .08em; }
 .timeline { min-height: 0; margin: 0; padding: 0 clamp(.8rem, 2vw, 1.25rem); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--window-scroll-thumb, var(--line)) var(--window-scroll-track, transparent); list-style: none; outline: none; }
 .timeline:focus-visible { box-shadow: inset 0 0 0 2px var(--blue); }

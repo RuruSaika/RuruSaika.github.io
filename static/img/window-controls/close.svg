@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" shape-rendering="crispEdges">
+  <title>Close window</title>
+  <rect width="24" height="24" fill="#C4C9C7"/>
+  <path d="M0 0h24v2H2v22H0V0Z" fill="#FBFDF9"/>
+  <path d="M22 2h2v22H0v-2h22V2Z" fill="#3C4447"/>
+  <path d="M2 2h20v2H4v18H2V2Z" fill="#E2E6E4"/>
+  <path d="M20 4h2v18H4v-2h16V4Z" fill="#747D80"/>
+  <rect x="4" y="4" width="16" height="16" fill="#C4C9C7"/>
+  <path d="m8 7 11 11-2 2L6 9l2-2Zm9 0 2 2L8 20l-2-2L17 7Z" fill="#F5F7F4"/>
+  <path d="m7 6 11 11-2 2L5 8l2-2Zm9 0 2 2L7 19l-2-2L16 6Z" fill="#172025"/>
+</svg>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" shape-rendering="crispEdges">
+  <title>Minimize window</title>
+  <rect width="24" height="24" fill="#C4C9C7"/>
+  <path d="M0 0h24v2H2v22H0V0Z" fill="#FBFDF9"/>
+  <path d="M22 2h2v22H0v-2h22V2Z" fill="#3C4447"/>
+  <path d="M2 2h20v2H4v18H2V2Z" fill="#E2E6E4"/>
+  <path d="M20 4h2v18H4v-2h16V4Z" fill="#747D80"/>
+  <rect x="4" y="4" width="16" height="16" fill="#C4C9C7"/>
+  <rect x="8" y="16" width="9" height="2" fill="#F5F7F4"/>
+  <rect x="7" y="15" width="9" height="2" fill="#172025"/>
+</svg>
