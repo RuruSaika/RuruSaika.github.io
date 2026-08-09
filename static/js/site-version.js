@@ -1,6 +1,6 @@
 (() => {
     const preferenceVersion = "2026.08.09.1";
-    const releaseNumbers = Object.freeze({ github: 1, sites: 1 });
+    const releaseNumbers = Object.freeze({ github: 2, sites: 2 });
     const target = location.hostname.endsWith("chatgpt.site") ? "sites" : "github";
     const versions = Object.freeze({
         github: `${preferenceVersion}.${releaseNumbers.github}`,
@@ -10,7 +10,10 @@
 
     window.RuruSiteRelease = Object.freeze({ preferenceVersion, releaseNumbers, target, versions, version });
     document.documentElement.dataset.siteTarget = target;
-    document.documentElement.dataset.siteVersion = version;
+    // Keep the document-level release marker distinct from the visible
+    // [data-site-version] placeholders. Otherwise <html> itself is selected
+    // below and assigning textContent replaces the entire page.
+    document.documentElement.dataset.releaseVersion = version;
 
     const applyVersion = () => {
         document.querySelectorAll("[data-site-version]").forEach((element) => {
