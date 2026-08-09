@@ -5,10 +5,12 @@ portfolio redesign does not endanger the accumulated articles.
 
 ## Boundaries
 
-- `study/` is the presentation layer. The path is retained for URL and storage
-  compatibility, while the product presented there is Ruru's general Blog. It
-  contains the public index, article reader, private editor, and a small
-  Markdown renderer.
+- The public Blog presentation is part of the root personal site. `index.html`
+  contains the article index and unified reader view, while
+  `static/js/blog.js` consumes the public API without owning durable data.
+- `study/` is retained only for the private editor, shared Markdown renderer,
+  and editor-specific styles. The old public Blog paths are intentionally not
+  kept as compatibility routes.
 - `worker/index.js` is the API and authorization boundary. Public routes are
   read-only; every write route verifies the signed-in ChatGPT user server-side
   against the configured owner email.
@@ -21,7 +23,8 @@ portfolio redesign does not endanger the accumulated articles.
   persists the complete active-post order through an owner-only reorder endpoint.
   The public Blog defaults to this manual order and can switch locally to pure
   reverse publication-date order. Rows without an assigned manual position fall
-  back to publication date until the first reorder is saved.
+  back to publication date until the first reorder is saved. The merged homepage
+  keeps this switch without changing the stored order.
 - R2 stores uploaded images. Markdown refers to images through portable
   `asset://<id>` tokens rather than deployment-specific URLs.
 

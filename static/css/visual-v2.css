@@ -1,4 +1,4 @@
-/* Living visual layer. The rendered version is injected from the preference file. */
+/* Living visual layer. Site releases are validated against the preference version at build time. */
 :root {
     --ink: #090c0e;
     --ink-soft: #111619;
