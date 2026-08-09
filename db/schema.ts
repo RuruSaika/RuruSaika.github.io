@@ -6,7 +6,9 @@
  * /drizzle whenever the storage shape evolves.
  */
 export type StudyPostStatus = "draft" | "published" | "archived";
-export type StudySubject = "数学" | "英语" | "政治" | "专业课" | "复盘" | "其他";
+export type BlogCategory = "生活" | "学习" | "其它";
+export type LegacyStudySubject = "数学" | "英语" | "政治" | "专业课" | "复盘" | "其他";
+export type StudySubject = BlogCategory | LegacyStudySubject;
 
 export interface StudyPostRecord {
   id: string;
@@ -17,7 +19,9 @@ export interface StudyPostRecord {
   subject: StudySubject;
   tags_json: string;
   status: StudyPostStatus;
+  /** @deprecated Manual sort_order is the authoritative presentation order. */
   is_pinned: 0 | 1;
+  sort_order: number;
   author_email: string;
   published_at: string | null;
   created_at: string;

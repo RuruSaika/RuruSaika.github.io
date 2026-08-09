@@ -154,7 +154,7 @@ function initAdmin() {
 
   function newPost() {
     if (!confirmDiscard()) return;
-    state.current = { id: "", status: "draft", subject: "生活", tags: [], isPinned: false };
+    state.current = { id: "", status: "draft", subject: "生活", tags: [] };
     fillForm(state.current);
     form.hidden = false;
     editorEmpty.hidden = true;
@@ -185,7 +185,6 @@ function initAdmin() {
     content.value = post.content || "";
     $("[data-subject]").value = post.subject || "其它";
     $("[data-tags]").value = (post.tags || []).join("，");
-    $("[data-pinned]").checked = Boolean(post.isPinned);
     $("[data-status-label]").textContent = post.status === "published" ? `已发布 · ${formatDate(post.publishedAt)}` : post.id ? "草稿" : "新草稿";
     $(".status-dot").classList.toggle("published", post.status === "published");
     $("[data-publish]").textContent = post.status === "published" ? "更新发布" : "发布文章";
@@ -201,7 +200,6 @@ function initAdmin() {
       content: content.value,
       subject: $("[data-subject]").value,
       tags: $("[data-tags]").value.split(/[,，]/).map((tag) => tag.trim()).filter(Boolean),
-      isPinned: $("[data-pinned]").checked,
       status,
     };
   }

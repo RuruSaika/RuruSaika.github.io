@@ -3,7 +3,7 @@ $ErrorActionPreference = "Stop"
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
 $distRoot = Join-Path $projectRoot "dist"
 $workspaceRoot = (Resolve-Path -LiteralPath (Join-Path $projectRoot "..")).Path
-$preferencePath = Join-Path $workspaceRoot "visual-preferences\visual-preferences.md"
+$preferencePath = Join-Path $workspaceRoot "visual-preferences\STYLE_GUIDE.md"
 $siteVersionPath = Join-Path $projectRoot "static\js\site-version.js"
 
 if (-not (Test-Path -LiteralPath $preferencePath -PathType Leaf)) {
@@ -18,17 +18,17 @@ if (-not $styleVersionMatch.Success) {
 $styleVersion = $styleVersionMatch.Groups[1].Value
 
 $siteVersionText = [IO.File]::ReadAllText($siteVersionPath, [Text.Encoding]::UTF8)
-$sitePreferenceMatch = [regex]::Match($siteVersionText, 'const preferenceVersion = "(\d{4}\.\d{2}\.\d{2}\.\d+)";')
+$githubPreferenceMatch = [regex]::Match($siteVersionText, 'github:\s*"(\d{4}\.\d{2}\.\d{2}\.\d+)",')
+$sitesPreferenceMatch = [regex]::Match($siteVersionText, 'sites:\s*"(\d{4}\.\d{2}\.\d{2}\.\d+)",')
 $githubReleaseMatch = [regex]::Match($siteVersionText, 'github:\s*(\d+)')
 $sitesReleaseMatch = [regex]::Match($siteVersionText, 'sites:\s*(\d+)')
-if (-not $sitePreferenceMatch.Success -or -not $githubReleaseMatch.Success -or -not $sitesReleaseMatch.Success) {
+if (-not $githubPreferenceMatch.Success -or -not $sitesPreferenceMatch.Success -or -not $githubReleaseMatch.Success -or -not $sitesReleaseMatch.Success) {
     throw "Could not read the dual-site version configuration from $siteVersionPath."
 }
-if ($sitePreferenceMatch.Groups[1].Value -ne $styleVersion) {
-    throw "Site preference version $($sitePreferenceMatch.Groups[1].Value) does not match preference file version $styleVersion."
-}
-$githubSiteVersion = "$styleVersion.$($githubReleaseMatch.Groups[1].Value)"
-$sitesSiteVersion = "$styleVersion.$($sitesReleaseMatch.Groups[1].Value)"
+$githubPreferenceVersion = $githubPreferenceMatch.Groups[1].Value
+$sitesPreferenceVersion = $sitesPreferenceMatch.Groups[1].Value
+$githubSiteVersion = "$githubPreferenceVersion.$($githubReleaseMatch.Groups[1].Value)"
+$sitesSiteVersion = "$sitesPreferenceVersion.$($sitesReleaseMatch.Groups[1].Value)"
 
 if (Test-Path -LiteralPath $distRoot) {
     $resolvedDist = (Resolve-Path -LiteralPath $distRoot).Path
@@ -46,4 +46,5 @@ Copy-Item -LiteralPath (Join-Path $projectRoot "static") -Destination $clientRoo
 Copy-Item -LiteralPath (Join-Path $projectRoot "study") -Destination $clientRoot.FullName -Recurse
 Copy-Item -LiteralPath (Join-Path $projectRoot "worker\index.js") -Destination (Join-Path $serverRoot.FullName "index.js")
 
+Write-Output "Current canonical preference: $styleVersion"
 Write-Output "Built GitHub site $githubSiteVersion and Sites site $sitesSiteVersion into $distRoot"

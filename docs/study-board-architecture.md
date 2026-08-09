@@ -25,6 +25,9 @@ portfolio redesign does not endanger the accumulated articles.
   reverse publication-date order. Rows without an assigned manual position fall
   back to publication date until the first reorder is saved. The merged homepage
   keeps this switch without changing the stored order.
+- The legacy `is_pinned` column is retained for storage and API compatibility,
+  but it no longer controls presentation order. Manual ordering is the single
+  authoritative way to place an article at the top of the Blog.
 - R2 stores uploaded images. Markdown refers to images through portable
   `asset://<id>` tokens rather than deployment-specific URLs.
 

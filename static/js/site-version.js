@@ -1,15 +1,20 @@
 (() => {
-    const preferenceVersion = "2026.08.09.1";
-    const releaseNumbers = Object.freeze({ github: 2, sites: 2 });
+    const preferenceVersions = Object.freeze({
+        github: "2026.08.09.4",
+        sites: "2026.08.09.4",
+    });
+    const releaseNumbers = Object.freeze({ github: 1, sites: 1 });
     const target = location.hostname.endsWith("chatgpt.site") ? "sites" : "github";
     const versions = Object.freeze({
-        github: `${preferenceVersion}.${releaseNumbers.github}`,
-        sites: `${preferenceVersion}.${releaseNumbers.sites}`,
+        github: `${preferenceVersions.github}.${releaseNumbers.github}`,
+        sites: `${preferenceVersions.sites}.${releaseNumbers.sites}`,
     });
+    const preferenceVersion = preferenceVersions[target];
     const version = versions[target];
 
-    window.RuruSiteRelease = Object.freeze({ preferenceVersion, releaseNumbers, target, versions, version });
+    window.RuruSiteRelease = Object.freeze({ preferenceVersions, preferenceVersion, releaseNumbers, target, versions, version });
     document.documentElement.dataset.siteTarget = target;
+    document.documentElement.dataset.adoptedPreferenceVersion = preferenceVersion;
     // Keep the document-level release marker distinct from the visible
     // [data-site-version] placeholders. Otherwise <html> itself is selected
     // below and assigning textContent replaces the entire page.
@@ -19,8 +24,13 @@
         document.querySelectorAll("[data-site-version]").forEach((element) => {
             element.textContent = version;
         });
+        document.querySelectorAll("[data-preference-version]").forEach((element) => {
+            element.textContent = preferenceVersion;
+        });
         const meta = document.querySelector('meta[name="rurusaika-site-version"]');
         if (meta) meta.content = version;
+        const preferenceMeta = document.querySelector('meta[name="rurusaika-preference-version"]');
+        if (preferenceMeta) preferenceMeta.content = preferenceVersion;
     };
 
     if (document.readyState === "loading") {

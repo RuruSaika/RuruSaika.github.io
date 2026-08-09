@@ -178,7 +178,7 @@ async function handleApi(request, env, url) {
     const now = new Date().toISOString();
     const id = validId(payload.id) ? payload.id : crypto.randomUUID();
     const existing = validId(payload.id)
-      ? await env.DB.prepare("SELECT id, slug, created_at, published_at, revision, sort_order FROM study_posts WHERE id = ? LIMIT 1").bind(id).first()
+      ? await env.DB.prepare("SELECT id, slug, created_at, published_at, revision, sort_order, is_pinned FROM study_posts WHERE id = ? LIMIT 1").bind(id).first()
       : null;
     const title = cleanText(payload.title, 120);
     if (!title) return json({ error: "标题不能为空。" }, 400);
@@ -187,7 +187,9 @@ async function handleApi(request, env, url) {
     const subject = normalizeCategory(payload.subject);
     const tags = normalizeTags(payload.tags);
     const status = ["draft", "published"].includes(payload.status) ? payload.status : "draft";
-    const isPinned = payload.isPinned ? 1 : 0;
+    // Manual ordering supersedes pinning. Preserve legacy values on edits so
+    // removing the editor control does not silently rewrite existing records.
+    const isPinned = existing ? Number(existing.is_pinned || 0) : 0;
     const slug = existing?.slug || createSlug(now);
     const createdAt = existing?.created_at || now;
     const publishedAt = status === "published" ? (existing?.published_at || now) : existing?.published_at || null;

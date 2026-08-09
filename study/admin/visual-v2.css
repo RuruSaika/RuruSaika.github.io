@@ -175,7 +175,7 @@
 .editor-status { color: var(--admin-muted); }
 .status-dot { width: 6px; height: 6px; background: var(--warning); }
 .status-dot.published { background: var(--blue); }
-.primary-button, .ghost-button, .format-tools button, .pin-field { border-radius: 3px; }
+.primary-button, .ghost-button, .format-tools button { border-radius: 3px; }
 .ghost-button { border-color: var(--admin-line); color: var(--admin-muted); }
 .ghost-button:hover { border-color: var(--admin-line-strong); color: var(--admin-text); }
 .danger-button:hover { border-color: var(--red); color: #d68880; }
@@ -184,7 +184,6 @@
 
 .editor-scroll { max-width: 1120px; width: 100%; margin: 0 auto; }
 .editor-scroll label > span, .content-label > span { color: var(--admin-muted); font-weight: 560; }
-.pin-field { border-color: var(--admin-line); }
 .title-field textarea {
   font-family: Georgia, "Noto Serif SC", "Songti SC", serif;
   font-weight: 520;

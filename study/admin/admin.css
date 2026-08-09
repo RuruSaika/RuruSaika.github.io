@@ -76,9 +76,8 @@
 .editor-scroll input:not([type="checkbox"]), .editor-scroll select { min-height: 42px; padding: .7rem .8rem; }
 .editor-scroll textarea { padding: 1rem; resize: vertical; line-height: 1.7; }
 .editor-scroll input:focus, .editor-scroll textarea:focus, .editor-scroll select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(49,92,255,.12); }
-.field-row { display: grid; grid-template-columns: 160px 1fr auto; gap: 1rem; align-items: end; margin-bottom: 2rem; }
+.field-row { display: grid; grid-template-columns: 160px 1fr; gap: 1rem; align-items: end; margin-bottom: 2rem; }
 .field-row label { display: grid; gap: .7rem; }
-.pin-field { min-height: 42px; display: flex !important; align-items: center; gap: .55rem !important; padding: .7rem .8rem; border: 1px solid var(--admin-line); border-radius: 5px; }
 .title-field textarea { border: 0 !important; border-bottom: 1px solid var(--admin-line) !important; border-radius: 0 !important; padding: .4rem 0 1rem !important; background: transparent !important; font-size: clamp(2rem, 5vw, 4rem); font-weight: 760; line-height: 1.04 !important; letter-spacing: -.06em; }
 .content-label { display: flex; justify-content: space-between; align-items: center; }
 .format-tools { display: flex; gap: .3rem; flex-wrap: wrap; }
@@ -100,7 +99,6 @@
   .admin-layout { grid-template-columns: 240px minmax(0, 1fr); }
   .save-state, .admin-header-actions a:first-of-type, .admin-header-actions a:nth-of-type(2) { display: none; }
   .field-row { grid-template-columns: 1fr 1fr; }
-  .pin-field { grid-column: 1 / -1; }
 }
 @media (max-width: 680px) {
   .admin-body { overflow: auto; }
@@ -115,7 +113,6 @@
   .editor-toolbar { flex-wrap: wrap; }
   .editor-actions { width: 100%; overflow-x: auto; padding-bottom: .15rem; }
   .field-row { grid-template-columns: 1fr; }
-  .pin-field { grid-column: auto; }
   .upload-zone { grid-template-columns: auto 1fr; }
   .upload-zone > span { display: none; }
 }
