@@ -73,7 +73,8 @@
     async function loadPosts() {
         if (state.loaded) return;
         try {
-            const response = await fetch(board.apiUrl("/api/study/posts"));
+            const source = board.isSitesHost ? board.apiUrl("/api/study/posts") : "/static/blog/posts.json";
+            const response = await fetch(source, { cache: "no-store" });
             if (!response.ok) throw new Error("load failed");
             const data = await response.json();
             state.posts = data.posts || [];
@@ -101,10 +102,17 @@
         articleRoot.innerHTML = '<div class="blog-article-state">正在打开文章……</div>';
 
         try {
-            const response = await fetch(board.apiUrl(`/api/study/posts/${encodeURIComponent(slug)}`));
-            const data = await response.json();
-            if (!response.ok || !data.post) throw new Error(data.error || "没有找到这篇文章。");
-            const post = data.post;
+            let post;
+            if (board.isSitesHost) {
+                const response = await fetch(board.apiUrl(`/api/study/posts/${encodeURIComponent(slug)}`));
+                const data = await response.json();
+                if (!response.ok || !data.post) throw new Error(data.error || "没有找到这篇文章。");
+                post = data.post;
+            } else {
+                if (!state.loaded) await loadPosts();
+                post = state.posts.find((item) => item.slug === slug);
+                if (!post) throw new Error("没有找到这篇文章。");
+            }
             document.title = `${post.title} — RuruSaika`;
             articleRoot.innerHTML = `
                 <header class="blog-article-header">
@@ -154,6 +162,10 @@
     });
     window.addEventListener("popstate", () => syncRoute());
 
-    loadPosts();
-    syncRoute();
+    async function init() {
+        await loadPosts();
+        await syncRoute();
+    }
+
+    init();
 })();

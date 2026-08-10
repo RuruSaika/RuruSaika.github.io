@@ -12,6 +12,7 @@
     const match = String(value || "").match(/^asset:\/\/([a-f0-9-]+)$/i);
     if (match) return apiUrl(`/api/study/assets/${match[1]}`);
     if (value.startsWith("/api/study/")) return apiUrl(value);
+    if (value.startsWith("/static/blog/assets/")) return value;
     if (/^https?:\/\//i.test(value)) return value;
     return "";
   }
