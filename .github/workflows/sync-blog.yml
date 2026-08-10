@@ -9,8 +9,13 @@ on:
       - "static/js/blog.js"
       - "study/shared.js"
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "17 * * * *"
   workflow_dispatch:
+    inputs:
+      reason:
+        description: "What changed on the publishing origin"
+        required: false
+        type: string
 
 permissions:
   contents: write

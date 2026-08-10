@@ -245,7 +245,11 @@ function initAdmin() {
       localStorage.removeItem("ruru-study-unsaved");
       markDirty(false);
       await loadPosts(data.post.id);
-      toast(status === "published" ? "文章已发布。" : "草稿已保存。");
+      if (status === "published" && data.sync?.queued === false) {
+        toast("文章已发布，但 GitHub 镜像未能启动；定时任务将稍后重试。", true);
+      } else {
+        toast(status === "published" ? "文章已发布，GitHub 镜像正在更新。" : "草稿已保存。");
+      }
     } catch (error) {
       $("[data-save-state]").textContent = "保存失败";
       toast(error.message || "保存失败，请稍后重试。", true);

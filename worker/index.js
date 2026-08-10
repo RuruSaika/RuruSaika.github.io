@@ -8,6 +8,7 @@ const ALLOWED_IMAGE_TYPES = new Map([
 ]);
 const ALLOWED_CATEGORIES = new Set(["生活", "学习", "其它"]);
 const LEGACY_STUDY_CATEGORIES = new Set(["数学", "英语", "政治", "专业课", "复盘"]);
+const GITHUB_SYNC_ENDPOINT = "https://api.github.com/repos/RuruSaika/RuruSaika.github.io/actions/workflows/sync-blog.yml/dispatches";
 let schemaPromise;
 
 export default {
@@ -154,7 +155,8 @@ async function handleApi(request, env, url) {
     await env.DB.batch(ids.map((id, index) => env.DB.prepare(
       "UPDATE study_posts SET sort_order = ? WHERE id = ?",
     ).bind(index + 1, id)));
-    return json({ ok: true });
+    const sync = await requestPublicMirrorSync(env, "reorder");
+    return json({ ok: true, sync });
   }
 
   if (url.pathname === "/api/study/admin/posts" && request.method === "GET") {
@@ -178,7 +180,7 @@ async function handleApi(request, env, url) {
     const now = new Date().toISOString();
     const id = validId(payload.id) ? payload.id : crypto.randomUUID();
     const existing = validId(payload.id)
-      ? await env.DB.prepare("SELECT id, slug, created_at, published_at, revision, sort_order, is_pinned FROM study_posts WHERE id = ? LIMIT 1").bind(id).first()
+      ? await env.DB.prepare("SELECT id, slug, status, created_at, published_at, revision, sort_order, is_pinned FROM study_posts WHERE id = ? LIMIT 1").bind(id).first()
       : null;
     const title = cleanText(payload.title, 120);
     if (!title) return json({ error: "标题不能为空。" }, 400);
@@ -224,22 +226,30 @@ async function handleApi(request, env, url) {
              is_pinned, sort_order, published_at, created_at, updated_at, revision
       FROM study_posts WHERE id = ? LIMIT 1
     `).bind(id).first();
-    return json({ post: serializePost(saved) }, existing ? 200 : 201);
+    const affectsPublicMirror = status === "published" || existing?.status === "published";
+    const sync = affectsPublicMirror
+      ? await requestPublicMirrorSync(env, status === "published" ? "publish" : "unpublish")
+      : { queued: false, reason: "not_public" };
+    return json({ post: serializePost(saved), sync }, existing ? 200 : 201);
   }
 
   const archiveMatch = url.pathname.match(/^\/api\/study\/admin\/posts\/([a-f0-9-]+)\/archive$/i);
   if (archiveMatch && request.method === "POST") {
+    const existing = await env.DB.prepare("SELECT status FROM study_posts WHERE id = ? LIMIT 1").bind(archiveMatch[1]).first();
     await env.DB.prepare(`
       UPDATE study_posts SET status = 'archived', updated_at = ?, revision = revision + 1
       WHERE id = ?
     `).bind(new Date().toISOString(), archiveMatch[1]).run();
-    return json({ ok: true });
+    const sync = existing?.status === "published"
+      ? await requestPublicMirrorSync(env, "archive")
+      : { queued: false, reason: "not_public" };
+    return json({ ok: true, sync });
   }
 
   const deleteMatch = url.pathname.match(/^\/api\/study\/admin\/posts\/([a-f0-9-]+)$/i);
   if (deleteMatch && request.method === "DELETE") {
     const postId = deleteMatch[1];
-    const post = await env.DB.prepare("SELECT id, content FROM study_posts WHERE id = ? LIMIT 1").bind(postId).first();
+    const post = await env.DB.prepare("SELECT id, content, status FROM study_posts WHERE id = ? LIMIT 1").bind(postId).first();
     if (!post) return json({ error: "没有找到要删除的文章。" }, 404);
 
     const linked = await env.DB.prepare(`
@@ -257,7 +267,10 @@ async function handleApi(request, env, url) {
     const deletes = [...assets.keys()].map((id) => env.DB.prepare("DELETE FROM study_assets WHERE id = ?").bind(id));
     deletes.push(env.DB.prepare("DELETE FROM study_posts WHERE id = ?").bind(postId));
     await env.DB.batch(deletes);
-    return json({ ok: true, deletedAssets: assets.size });
+    const sync = post.status === "published"
+      ? await requestPublicMirrorSync(env, "delete")
+      : { queued: false, reason: "not_public" };
+    return json({ ok: true, deletedAssets: assets.size, sync });
   }
 
   if (url.pathname === "/api/study/admin/upload" && request.method === "POST") {
@@ -440,6 +453,37 @@ function validId(value) {
 
 function createSlug(isoDate) {
   return `${isoDate.slice(0, 10).replaceAll("-", "")}-${crypto.randomUUID().slice(0, 8)}`;
+}
+
+async function requestPublicMirrorSync(env, reason) {
+  const token = String(env.GITHUB_SYNC_TOKEN || "").trim();
+  if (!token) {
+    console.warn("public mirror dispatch skipped: GITHUB_SYNC_TOKEN is not configured");
+    return { queued: false, reason: "not_configured" };
+  }
+
+  try {
+    const response = await fetch(GITHUB_SYNC_ENDPOINT, {
+      method: "POST",
+      headers: {
+        accept: "application/vnd.github+json",
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json",
+        "user-agent": "RuruSaikaBlogPublisher/1.0",
+        "x-github-api-version": "2022-11-28",
+      },
+      body: JSON.stringify({ ref: "main", inputs: { reason } }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) {
+      console.error("public mirror dispatch failed", response.status, (await response.text()).slice(0, 500));
+      return { queued: false, reason: "github_rejected" };
+    }
+    return { queued: true };
+  } catch (error) {
+    console.error("public mirror dispatch failed", error);
+    return { queued: false, reason: "request_failed" };
+  }
 }
 
 function clamp(value, min, max) {

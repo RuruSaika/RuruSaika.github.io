@@ -38,13 +38,22 @@ portfolio redesign does not endanger the accumulated articles.
 - `scripts/sync-public-blog.mjs` reads only published API routes, downloads
   referenced R2 images, rewrites their portable tokens to same-origin static
   paths, and writes a stable snapshot under `static/blog/`.
-- `.github/workflows/sync-blog.yml` runs the mirror every ten minutes and can
-  also be started manually. It commits only when the snapshot changes, then
-  requests a GitHub Pages rebuild.
+- Publishing, unpublishing, archiving, deleting, or reordering public posts asks
+  GitHub Actions to run the mirror immediately. The API Worker keeps the
+  fine-grained GitHub token in the server-only `GITHUB_SYNC_TOKEN` secret; the
+  editor never receives it. The token only needs Actions read/write access to
+  `RuruSaika/RuruSaika.github.io`.
+- `.github/workflows/sync-blog.yml` accepts the publish-time
+  `workflow_dispatch` event and also runs hourly at minute 17 as a recovery
+  path. It commits only when the snapshot changes, then requests a GitHub Pages
+  rebuild. GitHub's scheduled event is fallback recovery rather than the normal
+  publication path.
 - A failed sync stops before replacing `posts.json`, so GitHub Pages keeps the
   last successfully mirrored public content.
-- Article publishing remains a single action in the private editor. The mirror
-  is eventual and does not make GitHub a second writable content store.
+- Article publishing remains a single action in the private editor. A failed
+  dispatch does not roll back the canonical D1 write; the editor shows a warning
+  and the hourly recovery run retries the mirror later. GitHub remains a
+  read-only public snapshot rather than a second content store.
 
 ## Portability
 
