@@ -1,7 +1,7 @@
 # Site versioning
 
 The canonical style guide and deployed websites have deliberately independent
-version timelines. `visual-preferences/STYLE_GUIDE.md` records the newest
+version timelines. `style/STYLE_GUIDE.md` records the newest
 available preference version, while each website records the version it has
 actually adopted.
 

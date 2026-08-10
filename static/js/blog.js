@@ -52,19 +52,20 @@
         countRoot.textContent = `${String(filtered.length).padStart(2, "0")} ARTICLES`;
         if (!filtered.length) {
             const hasPosts = state.posts.length > 0;
-            postsRoot.innerHTML = `<div class="blog-empty"><strong>${hasPosts ? "没有找到匹配的文章" : "第一篇文章正在路上"}</strong><p>${hasPosts ? "换个关键词或分类试试。" : "这里会慢慢积累生活片段、学习记录与其它随笔。"}</p></div>`;
+            postsRoot.innerHTML = `<div class="blog-empty"><strong>${hasPosts ? "没有找到匹配的文章" : "暂无文章"}</strong><p>${hasPosts ? "换个关键词或分类试试。" : "文章发布后会显示在这里。"}</p></div>`;
             return;
         }
 
         postsRoot.innerHTML = filtered.map((post) => `
             <a class="blog-card" href="${postHref(post.slug)}" data-blog-post-link="${board.escapeHtml(post.slug)}">
-                <div class="blog-card-meta"><span>${board.escapeHtml(post.subject)}</span><time>${board.formatDate(post.publishedAt)}</time></div>
-                <h4>${board.escapeHtml(post.title)}</h4>
-                <p>${board.escapeHtml(post.summary || "这篇文章暂时没有摘要。")}</p>
-                <div class="blog-card-bottom">
-                    <div>${(post.tags || []).slice(0, 4).map((tag) => `<span>${board.escapeHtml(tag)}</span>`).join("")}</div>
-                    <i aria-hidden="true">↗</i>
+                <time class="blog-date">${board.formatDate(post.publishedAt)}</time>
+                <div class="blog-card-content">
+                    <span class="blog-subject">${board.escapeHtml(post.subject)}</span>
+                    <h3>${board.escapeHtml(post.title)}</h3>
+                    <p>${board.escapeHtml(post.summary || "这篇文章暂时没有摘要。")}</p>
+                    ${(post.tags || []).length ? `<div class="blog-tags">${post.tags.slice(0, 4).map((tag) => `<span>${board.escapeHtml(tag)}</span>`).join("")}</div>` : ""}
                 </div>
+                <span class="blog-arrow" aria-hidden="true">↗</span>
             </a>
         `).join("");
     }
@@ -97,7 +98,7 @@
         intro.hidden = true;
         reader.hidden = false;
         section.classList.add("blog-reading");
-        articleRoot.innerHTML = '<div class="blog-article-state">正在打开文章…</div>';
+        articleRoot.innerHTML = '<div class="blog-article-state">正在打开文章……</div>';
 
         try {
             const response = await fetch(board.apiUrl(`/api/study/posts/${encodeURIComponent(slug)}`));

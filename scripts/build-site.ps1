@@ -3,11 +3,11 @@ $ErrorActionPreference = "Stop"
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
 $distRoot = Join-Path $projectRoot "dist"
 $workspaceRoot = (Resolve-Path -LiteralPath (Join-Path $projectRoot "..")).Path
-$preferencePath = Join-Path $workspaceRoot "visual-preferences\STYLE_GUIDE.md"
+$preferencePath = Join-Path $workspaceRoot "style\STYLE_GUIDE.md"
 $siteVersionPath = Join-Path $projectRoot "static\js\site-version.js"
 
 if (-not (Test-Path -LiteralPath $preferencePath -PathType Leaf)) {
-    throw "Could not find the local visual preference file at $preferencePath."
+    throw "Could not find the local style guide at $preferencePath."
 }
 
 $preferenceText = [IO.File]::ReadAllText($preferencePath, [Text.Encoding]::UTF8)

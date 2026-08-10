@@ -1,5 +1,28 @@
 const { SITES_ORIGIN, apiUrl, escapeHtml, renderMarkdown, formatDate, isSitesHost } = window.StudyBoard;
 
+const adminRoot = document.documentElement;
+const adminThemeButton = document.querySelector("[data-admin-theme-toggle]");
+const adminThemeLabel = document.querySelector("[data-admin-theme-label]");
+const adminThemeColor = document.querySelector('meta[name="theme-color"]');
+
+function readAdminTheme() {
+  try { return localStorage.getItem("ruru-theme"); } catch { return null; }
+}
+
+function applyAdminTheme(theme, persist = true) {
+  const isLight = theme === "light";
+  adminRoot.dataset.theme = isLight ? "light" : "dark";
+  adminThemeLabel.textContent = isLight ? "深色" : "浅色";
+  adminThemeButton.setAttribute("aria-label", `切换为${isLight ? "深色" : "浅色"}主题`);
+  adminThemeColor.setAttribute("content", isLight ? "#e9ecef" : "#0d1115");
+  if (persist) {
+    try { localStorage.setItem("ruru-theme", isLight ? "light" : "dark"); } catch { /* Theme still works without storage. */ }
+  }
+}
+
+applyAdminTheme(readAdminTheme() || "dark", false);
+adminThemeButton.addEventListener("click", () => applyAdminTheme(adminRoot.dataset.theme === "light" ? "dark" : "light"));
+
 function reorderPostList(posts, postId, targetId, placeAfter = false) {
   if (postId === targetId) return false;
   const fromIndex = posts.findIndex((post) => post.id === postId);
