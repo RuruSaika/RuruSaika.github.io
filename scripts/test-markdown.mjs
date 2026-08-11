@@ -2,12 +2,17 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 
+const vendorSource = await readFile(new URL("../static/vendor/markdown-it/markdown-it.umd.min.js", import.meta.url), "utf8");
 const source = await readFile(new URL("../study/shared.js", import.meta.url), "utf8");
-const context = { location: { hostname: "127.0.0.1" }, window: {} };
+const context = { location: { hostname: "127.0.0.1" }, atob };
+context.window = context;
+context.self = context;
+context.globalThis = context;
+vm.runInNewContext(vendorSource, context);
 vm.runInNewContext(source, context);
 
-const render = context.window.StudyBoard.renderMarkdown;
-const adjustIndent = context.window.StudyBoard.adjustMarkdownIndent;
+const render = context.StudyBoard.renderMarkdown;
+const adjustIndent = context.StudyBoard.adjustMarkdownIndent;
 const compact = (value) => value.replace(/\s+/g, "");
 
 assert.equal(compact(render(`
@@ -38,11 +43,85 @@ assert.equal(compact(render(`
 assert.equal(compact(render(`
 - first
   - nested
+
 Paragraph after the list.
 `)), compact(`
 <ul><li>first<ul><li>nested</li></ul></li></ul>
 <p>Paragraph after the list.</p>
 `));
+
+const continuationList = render(`
+- 顺序寻址：
+  通过程序计数器形成下一条指令地址
+- 跳跃寻址：
+  通过转移类指令实现
+  是否发生转移由条件码决定，转移方式分为：
+  1. 绝对转移
+  2. 相对转移
+`);
+assert.equal(compact(continuationList), compact(`
+<ul>
+<li>顺序寻址：
+通过程序计数器形成下一条指令地址</li>
+<li>跳跃寻址：
+通过转移类指令实现
+是否发生转移由条件码决定，转移方式分为：
+<ol><li>绝对转移</li><li>相对转移</li></ol>
+</li>
+</ul>
+`));
+
+const featureHtml = render(`
+# 一级标题
+
+普通段落包含 **粗体**、*斜体*、~~删除线~~、\`行内代码\` 和 [外链](https://example.com)。
+
+> 引用
+>
+> - 引用内列表
+
+3. 从三开始
+4. 下一项
+
+| 左对齐 | 居中 | 右对齐 |
+| :--- | :---: | ---: |
+| A | B | C |
+
+- [x] 已完成
+- [ ] 未完成
+
+---
+
+\`\`\`js
+const value = "<safe>";
+\`\`\`
+
+[参考链接]: https://example.org "标题"
+[引用式链接][参考链接]
+
+<script>alert("raw html must stay text")</script>
+`);
+assert.match(featureHtml, /<h2>一级标题<\/h2>/);
+assert.match(featureHtml, /<strong>粗体<\/strong>/);
+assert.match(featureHtml, /<em>斜体<\/em>/);
+assert.match(featureHtml, /<s>删除线<\/s>/);
+assert.match(featureHtml, /target="_blank" rel="noreferrer"/);
+assert.match(featureHtml, /<blockquote>/);
+assert.match(featureHtml, /<ol start="3">/);
+assert.match(featureHtml, /<table>/);
+assert.match(featureHtml, /class="task-list-item"/);
+assert.match(featureHtml, /type="checkbox" disabled checked/);
+assert.match(featureHtml, /<hr>/);
+assert.match(featureHtml, /<code class="language-js">/);
+assert.match(featureHtml, /&lt;safe&gt;/);
+assert.match(featureHtml, /href="https:\/\/example\.org"/);
+assert.doesNotMatch(featureHtml, /<script>/);
+assert.match(featureHtml, /&lt;script&gt;/);
+
+const imageHtml = render("![示例](asset://123e4567-e89b-12d3-a456-426614174000)");
+assert.match(imageHtml, /src="https:\/\/rurusaika-home\.rurusaika-official\.chatgpt\.site\/api\/study\/assets\/123e4567-e89b-12d3-a456-426614174000"/);
+assert.match(imageHtml, /loading="lazy"/);
+assert.match(imageHtml, /decoding="async"/);
 
 const indented = adjustIndent("- parent\n- child", 0, 16);
 assert.equal(indented.value, "  - parent\n  - child");

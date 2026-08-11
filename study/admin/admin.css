@@ -545,13 +545,22 @@ button { color: inherit; }
 
 .markdown-preview h2,
 .markdown-preview h3,
-.markdown-preview h4 { margin: 2.3em 0 0.8em; font-family: var(--serif); font-weight: 400; }
+.markdown-preview h4,
+.markdown-preview h5,
+.markdown-preview h6 { margin: 2.3em 0 0.8em; font-family: var(--serif); font-weight: 400; }
 .markdown-preview h2 { padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); font-size: 1.8rem; }
 .markdown-preview h3 { font-size: 1.35rem; }
 .markdown-preview a { color: var(--accent); text-underline-offset: 4px; }
 .markdown-preview ul, .markdown-preview ol { margin: 1rem 0; padding-left: 1.4rem; }
 .markdown-preview li { margin: 0.25rem 0; }
+.markdown-preview li > p { margin: 0.4rem 0; }
 .markdown-preview li > ul, .markdown-preview li > ol { margin: 0.35rem 0; }
+.markdown-preview .task-list-item { list-style: none; }
+.markdown-preview .task-list-checkbox { margin: 0 0.5rem 0 -1.35rem; accent-color: var(--accent); }
+.markdown-preview table { display: block; width: 100%; margin: 1.5rem 0; overflow-x: auto; border-collapse: collapse; }
+.markdown-preview th, .markdown-preview td { padding: 0.55rem 0.75rem; border: 1px solid var(--border); text-align: left; }
+.markdown-preview th { background: var(--bg-elevated); }
+.markdown-preview hr { margin: 2.5rem 0; border: 0; border-top: 1px solid var(--border); }
 .markdown-preview blockquote { margin-left: 0; padding-left: 20px; border-left: 2px solid var(--accent); color: var(--muted); }
 .markdown-preview pre { overflow-x: auto; padding: 16px; border: 1px solid var(--border); background: var(--bg-elevated); font: 0.86rem/1.7 var(--mono); }
 .markdown-preview code:not(pre code) { padding: 0.15em 0.35em; background: var(--bg-elevated); font-family: var(--mono); font-size: 0.9em; }

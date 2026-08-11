@@ -23,90 +23,74 @@
     })[char]);
   }
 
-  function renderInline(value) {
-    let text = escapeHtml(value);
-    text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, url) => {
-      const src = assetUrl(url.trim());
-      return src ? `<img src="${escapeHtml(src)}" alt="${alt}" loading="lazy">` : "";
+  function createMarkdownParser() {
+    if (typeof window.markdownit !== "function") return null;
+    const parser = window.markdownit({
+      html: false,
+      linkify: true,
+      breaks: false,
+      typographer: false,
     });
-    text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
-    text = text.replace(/`([^`]+)`/g, "<code>$1</code>");
-    text = text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    text = text.replace(/(^|\s)\*([^*]+)\*(?=\s|$)/g, "$1<em>$2</em>");
-    return text;
+
+    const defaultImage = parser.renderer.rules.image
+      || ((tokens, index, options, env, renderer) => renderer.renderToken(tokens, index, options));
+    parser.renderer.rules.image = (tokens, index, options, env, renderer) => {
+      const token = tokens[index];
+      const src = assetUrl(token.attrGet("src") || "");
+      if (!src) return "";
+      token.attrSet("src", src);
+      token.attrSet("loading", "lazy");
+      token.attrSet("decoding", "async");
+      return defaultImage(tokens, index, options, env, renderer);
+    };
+
+    const defaultLinkOpen = parser.renderer.rules.link_open
+      || ((tokens, index, options, env, renderer) => renderer.renderToken(tokens, index, options));
+    parser.renderer.rules.link_open = (tokens, index, options, env, renderer) => {
+      const token = tokens[index];
+      if (/^https?:\/\//i.test(token.attrGet("href") || "")) {
+        token.attrSet("target", "_blank");
+        token.attrSet("rel", "noreferrer");
+      }
+      return defaultLinkOpen(tokens, index, options, env, renderer);
+    };
+
+    const shiftHeading = (tokens, index, options, env, renderer) => {
+      const token = tokens[index];
+      const level = Number(token.tag.slice(1));
+      token.tag = `h${Math.min(6, level + 1)}`;
+      return renderer.renderToken(tokens, index, options);
+    };
+    parser.renderer.rules.heading_open = shiftHeading;
+    parser.renderer.rules.heading_close = shiftHeading;
+
+    parser.core.ruler.after("inline", "task-list-items", (state) => {
+      for (let index = 2; index < state.tokens.length; index += 1) {
+        const inline = state.tokens[index];
+        if (inline.type !== "inline"
+          || state.tokens[index - 1].type !== "paragraph_open"
+          || state.tokens[index - 2].type !== "list_item_open"
+          || inline.children?.[0]?.type !== "text") continue;
+        const match = inline.children[0].content.match(/^\[([ xX])\]\s+/);
+        if (!match) continue;
+        inline.children[0].content = inline.children[0].content.slice(match[0].length);
+        const checkbox = new state.Token("task_checkbox", "input", 0);
+        checkbox.meta = { checked: match[1].toLowerCase() === "x" };
+        inline.children.unshift(checkbox);
+        state.tokens[index - 2].attrJoin("class", "task-list-item");
+      }
+    });
+    parser.renderer.rules.task_checkbox = (tokens, index) => `<input class="task-list-checkbox" type="checkbox" disabled${tokens[index].meta.checked ? " checked" : ""} aria-label="${tokens[index].meta.checked ? "已完成" : "未完成"}">`;
+
+    return parser;
   }
 
+  const markdownParser = createMarkdownParser();
+
   function renderMarkdown(markdown) {
-    const lines = String(markdown || "").replace(/\r\n?/g, "\n").split("\n");
-    const html = [];
-    let paragraph = [];
-    const listStack = [];
-    let code = null;
-
-    const flushParagraph = () => {
-      if (paragraph.length) html.push(`<p>${renderInline(paragraph.join(" "))}</p>`);
-      paragraph = [];
-    };
-    const closeTopList = () => {
-      const list = listStack.pop();
-      if (!list) return;
-      if (list.itemOpen) html.push("</li>");
-      html.push(`</${list.type}>`);
-    };
-    const closeLists = () => {
-      while (listStack.length) closeTopList();
-    };
-    const appendListItem = (type, indent, content) => {
-      while (listStack.length && indent < listStack.at(-1).indent) closeTopList();
-      if (listStack.length && indent === listStack.at(-1).indent && type !== listStack.at(-1).type) {
-        closeTopList();
-      }
-
-      if (!listStack.length || indent > listStack.at(-1).indent) {
-        html.push(`<${type}>`);
-        listStack.push({ type, indent, itemOpen: false });
-      }
-
-      const list = listStack.at(-1);
-      if (list.itemOpen) html.push("</li>");
-      html.push(`<li>${renderInline(content)}`);
-      list.itemOpen = true;
-    };
-
-    for (const line of lines) {
-      if (line.startsWith("```")) {
-        flushParagraph(); closeLists();
-        if (code === null) code = [];
-        else { html.push(`<pre><code>${escapeHtml(code.join("\n"))}</code></pre>`); code = null; }
-        continue;
-      }
-      if (code !== null) { code.push(line); continue; }
-      if (!line.trim()) { flushParagraph(); closeLists(); continue; }
-
-      const heading = line.match(/^(#{1,4})\s+(.+)$/);
-      if (heading) {
-        flushParagraph(); closeLists();
-        const level = heading[1].length + 1;
-        html.push(`<h${level}>${renderInline(heading[2])}</h${level}>`);
-        continue;
-      }
-      if (/^---+$/.test(line.trim())) { flushParagraph(); closeLists(); html.push("<hr>"); continue; }
-      if (line.startsWith("> ")) { flushParagraph(); closeLists(); html.push(`<blockquote>${renderInline(line.slice(2))}</blockquote>`); continue; }
-
-      const listItem = line.match(/^([ \t]*)([-+*]|\d+[.)])\s+(.+)$/);
-      if (listItem) {
-        flushParagraph();
-        const indent = listItem[1].replace(/\t/g, "    ").length;
-        const type = /^\d/.test(listItem[2]) ? "ol" : "ul";
-        appendListItem(type, indent, listItem[3]);
-        continue;
-      }
-      closeLists();
-      paragraph.push(line.trim());
-    }
-    flushParagraph(); closeLists();
-    if (code !== null) html.push(`<pre><code>${escapeHtml(code.join("\n"))}</code></pre>`);
-    return html.join("\n");
+    const value = String(markdown || "");
+    if (markdownParser) return markdownParser.render(value);
+    return value ? `<p>${escapeHtml(value).replace(/\n/g, "<br>")}</p>` : "";
   }
 
   function adjustMarkdownIndent(markdown, selectionStart, selectionEnd, outdent = false) {
