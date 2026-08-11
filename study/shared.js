@@ -28,7 +28,7 @@
     const parser = window.markdownit({
       html: false,
       linkify: true,
-      breaks: false,
+      breaks: true,
       typographer: false,
     });
 

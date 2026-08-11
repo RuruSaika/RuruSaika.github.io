@@ -551,9 +551,9 @@ button { color: inherit; }
 .markdown-preview h2 { padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); font-size: 1.8rem; }
 .markdown-preview h3 { font-size: 1.35rem; }
 .markdown-preview a { color: var(--accent); text-underline-offset: 4px; }
-.markdown-preview ul, .markdown-preview ol { margin: 1rem 0; padding-left: 1.4rem; }
-.markdown-preview li { margin: 0.25rem 0; }
-.markdown-preview li > p { margin: 0.4rem 0; }
+.markdown-preview ul, .markdown-preview ol { margin: 1rem 0; padding-left: 1.6rem; }
+.markdown-preview li { margin: 0.45rem 0; padding-left: 0.15rem; }
+.markdown-preview li > p { margin: 0.55rem 0; }
 .markdown-preview li > ul, .markdown-preview li > ol { margin: 0.35rem 0; }
 .markdown-preview .task-list-item { list-style: none; }
 .markdown-preview .task-list-checkbox { margin: 0 0.5rem 0 -1.35rem; accent-color: var(--accent); }

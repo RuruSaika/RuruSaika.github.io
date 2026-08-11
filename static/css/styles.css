@@ -471,9 +471,9 @@ button { color: inherit; }
 .blog-article-body h3 { font-size: 1.45rem; }
 .blog-article-body p { margin: 1.2rem 0; }
 .blog-article-body a { color: var(--accent); text-underline-offset: 0.2em; }
-.blog-article-body ul, .blog-article-body ol { margin: 1rem 0; padding-left: 1.4rem; }
-.blog-article-body li { margin: 0.25rem 0; }
-.blog-article-body li > p { margin: 0.4rem 0; }
+.blog-article-body ul, .blog-article-body ol { margin: 1rem 0; padding-left: 1.6rem; }
+.blog-article-body li { margin: 0.45rem 0; padding-left: 0.15rem; }
+.blog-article-body li > p { margin: 0.55rem 0; }
 .blog-article-body li > ul, .blog-article-body li > ol { margin: 0.35rem 0; }
 .blog-article-body .task-list-item { list-style: none; }
 .blog-article-body .task-list-checkbox { margin: 0 0.5rem 0 -1.35rem; accent-color: var(--accent); }

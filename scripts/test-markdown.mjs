@@ -59,17 +59,31 @@ const continuationList = render(`
   1. 绝对转移
   2. 相对转移
 `);
+assert.match(continuationList, /顺序寻址：<br>\s*通过程序计数器/);
+assert.match(continuationList, /通过转移类指令实现<br>\s*是否发生转移/);
 assert.equal(compact(continuationList), compact(`
 <ul>
 <li>顺序寻址：
-通过程序计数器形成下一条指令地址</li>
+<br>通过程序计数器形成下一条指令地址</li>
 <li>跳跃寻址：
-通过转移类指令实现
+<br>通过转移类指令实现
+<br>
 是否发生转移由条件码决定，转移方式分为：
 <ol><li>绝对转移</li><li>相对转移</li></ol>
 </li>
 </ul>
 `));
+
+const looseContinuationList = render(`
+- 跳跃寻址：
+
+  通过转移类指令实现
+  是否发生转移由条件码决定，转移方式分为：
+  1. 绝对转移
+  2. 相对转移
+`);
+assert.match(looseContinuationList, /<li>\s*<p>跳跃寻址：<\/p>\s*<p>通过转移类指令实现<br>\s*是否发生转移由条件码决定，转移方式分为：<\/p>\s*<ol>/);
+assert.match(looseContinuationList, /<ol>\s*<li>绝对转移<\/li>\s*<li>相对转移<\/li>\s*<\/ol>/);
 
 const featureHtml = render(`
 # 一级标题
