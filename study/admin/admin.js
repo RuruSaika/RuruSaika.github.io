@@ -1,4 +1,4 @@
-const { SITES_ORIGIN, apiUrl, escapeHtml, renderMarkdown, formatDate, isSitesHost } = window.StudyBoard;
+const { SITES_ORIGIN, apiUrl, escapeHtml, renderMarkdown, adjustMarkdownIndent, formatDate, isSitesHost } = window.StudyBoard;
 
 const adminRoot = document.documentElement;
 const adminThemeButton = document.querySelector("[data-admin-theme-toggle]");
@@ -426,6 +426,14 @@ function initAdmin() {
   $("[data-retry-auth]").addEventListener("click", boot);
   $("[data-admin-search]").addEventListener("input", renderPostList);
   form.addEventListener("input", () => markDirty());
+  content.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    event.preventDefault();
+    const adjusted = adjustMarkdownIndent(content.value, content.selectionStart, content.selectionEnd, event.shiftKey);
+    content.value = adjusted.value;
+    content.setSelectionRange(adjusted.selectionStart, adjusted.selectionEnd);
+    markDirty();
+  });
   form.addEventListener("submit", (event) => { event.preventDefault(); save("published"); });
   $("[data-save-draft]").addEventListener("click", () => save("draft"));
   $("[data-preview-toggle]").addEventListener("click", () => setPreview(!state.preview));

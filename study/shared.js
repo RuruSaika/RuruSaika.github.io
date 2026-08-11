@@ -109,6 +109,47 @@
     return html.join("\n");
   }
 
+  function adjustMarkdownIndent(markdown, selectionStart, selectionEnd, outdent = false) {
+    const value = String(markdown || "");
+    const start = Math.max(0, Math.min(Number(selectionStart) || 0, value.length));
+    const end = Math.max(start, Math.min(Number(selectionEnd) || 0, value.length));
+    const lineStart = start > 0 ? value.lastIndexOf("\n", start - 1) + 1 : 0;
+    const effectiveEnd = end > start && value[end - 1] === "\n" ? end - 1 : end;
+    const nextBreak = value.indexOf("\n", effectiveEnd);
+    const lineEnd = nextBreak < 0 ? value.length : nextBreak;
+    const block = value.slice(lineStart, lineEnd);
+    const changes = [];
+    let position = lineStart;
+
+    const adjusted = block.split("\n").map((line) => {
+      let nextLine;
+      if (outdent) {
+        const prefix = line.match(/^(?:\t| {1,2})/)?.[0] || "";
+        nextLine = line.slice(prefix.length);
+        if (prefix) changes.push({ position, added: 0, removed: prefix.length });
+      } else {
+        nextLine = `  ${line}`;
+        changes.push({ position, added: 2, removed: 0 });
+      }
+      position += line.length + 1;
+      return nextLine;
+    }).join("\n");
+
+    const mapPosition = (original) => changes.reduce((mapped, change) => {
+      if (change.added && change.position <= original) return mapped + change.added;
+      if (change.removed && change.position < original) {
+        return mapped - Math.min(change.removed, original - change.position);
+      }
+      return mapped;
+    }, original);
+
+    return {
+      value: `${value.slice(0, lineStart)}${adjusted}${value.slice(lineEnd)}`,
+      selectionStart: mapPosition(start),
+      selectionEnd: mapPosition(end),
+    };
+  }
+
   function formatDate(value, long = false) {
     if (!value) return "未发布";
     return new Intl.DateTimeFormat("zh-CN", long
@@ -117,5 +158,5 @@
     ).format(new Date(value));
   }
 
-  window.StudyBoard = { SITES_ORIGIN, apiUrl, assetUrl, escapeHtml, renderMarkdown, formatDate, isSitesHost, isLocal };
+  window.StudyBoard = { SITES_ORIGIN, apiUrl, assetUrl, escapeHtml, renderMarkdown, adjustMarkdownIndent, formatDate, isSitesHost, isLocal };
 })();

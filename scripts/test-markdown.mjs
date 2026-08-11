@@ -7,6 +7,7 @@ const context = { location: { hostname: "127.0.0.1" }, window: {} };
 vm.runInNewContext(source, context);
 
 const render = context.window.StudyBoard.renderMarkdown;
+const adjustIndent = context.window.StudyBoard.adjustMarkdownIndent;
 const compact = (value) => value.replace(/\s+/g, "");
 
 assert.equal(compact(render(`
@@ -43,4 +44,24 @@ Paragraph after the list.
 <p>Paragraph after the list.</p>
 `));
 
-console.log("Markdown nested-list tests passed.");
+const indented = adjustIndent("- parent\n- child", 0, 16);
+assert.equal(indented.value, "  - parent\n  - child");
+assert.equal(indented.selectionStart, 2);
+assert.equal(indented.selectionEnd, 20);
+
+const restored = adjustIndent(indented.value, indented.selectionStart, indented.selectionEnd, true);
+assert.equal(restored.value, "- parent\n- child");
+assert.equal(restored.selectionStart, 0);
+assert.equal(restored.selectionEnd, 16);
+
+const cursorIndented = adjustIndent("- item", 2, 2);
+assert.equal(cursorIndented.value, "  - item");
+assert.equal(cursorIndented.selectionStart, 4);
+assert.equal(cursorIndented.selectionEnd, 4);
+
+const tabOutdented = adjustIndent("\t- item", 3, 3, true);
+assert.equal(tabOutdented.value, "- item");
+assert.equal(tabOutdented.selectionStart, 2);
+assert.equal(tabOutdented.selectionEnd, 2);
+
+console.log("Markdown list tests passed.");
