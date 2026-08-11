@@ -26,6 +26,7 @@ export interface StudyPostRecord {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+  /** @deprecated Legacy storage column; new saves no longer maintain or expose it. */
   revision: number;
 }
 

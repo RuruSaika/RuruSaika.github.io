@@ -40,8 +40,8 @@ async function handleApi(request, env, url) {
     const requestedCategory = normalizeRequestedCategory(url.searchParams.get("category") || url.searchParams.get("subject"));
     const requestedSort = url.searchParams.get("sort") === "date" ? "date" : "manual";
     const orderBy = requestedSort === "date"
-      ? "published_at DESC"
-      : "CASE WHEN sort_order = 0 THEN 0 ELSE 1 END ASC, CASE WHEN sort_order = 0 THEN published_at END DESC, sort_order ASC, published_at DESC";
+      ? "updated_at DESC"
+      : "CASE WHEN sort_order = 0 THEN 0 ELSE 1 END ASC, CASE WHEN sort_order = 0 THEN updated_at END DESC, sort_order ASC, updated_at DESC";
     const limit = clamp(Number(url.searchParams.get("limit")) || 50, 1, 100);
     let query;
     if (requestedCategory === "学习") {
@@ -162,7 +162,7 @@ async function handleApi(request, env, url) {
   if (url.pathname === "/api/study/admin/posts" && request.method === "GET") {
     const result = await env.DB.prepare(`
       SELECT id, slug, title, summary, content, subject, tags_json, status,
-             is_pinned, sort_order, published_at, created_at, updated_at, revision
+             is_pinned, sort_order, published_at, created_at, updated_at
       FROM study_posts
       WHERE status != 'archived'
       ORDER BY CASE WHEN sort_order = 0 THEN 0 ELSE 1 END ASC,
@@ -180,7 +180,7 @@ async function handleApi(request, env, url) {
     const now = new Date().toISOString();
     const id = validId(payload.id) ? payload.id : crypto.randomUUID();
     const existing = validId(payload.id)
-      ? await env.DB.prepare("SELECT id, slug, status, created_at, published_at, revision, sort_order, is_pinned FROM study_posts WHERE id = ? LIMIT 1").bind(id).first()
+      ? await env.DB.prepare("SELECT id, slug, status, created_at, published_at, sort_order, is_pinned FROM study_posts WHERE id = ? LIMIT 1").bind(id).first()
       : null;
     const title = cleanText(payload.title, 120);
     if (!title) return json({ error: "标题不能为空。" }, 400);
@@ -195,7 +195,6 @@ async function handleApi(request, env, url) {
     const slug = existing?.slug || createSlug(now);
     const createdAt = existing?.created_at || now;
     const publishedAt = status === "published" ? (existing?.published_at || now) : existing?.published_at || null;
-    const revision = Number(existing?.revision || 0) + 1;
     const nextOrder = existing
       ? Number(existing.sort_order || 0)
       : Number((await env.DB.prepare("SELECT COALESCE(MAX(sort_order), 0) AS value FROM study_posts").first())?.value || 0) + 1;
@@ -203,8 +202,8 @@ async function handleApi(request, env, url) {
     await env.DB.prepare(`
       INSERT INTO study_posts (
         id, slug, title, summary, content, subject, tags_json, status,
-        is_pinned, sort_order, author_email, published_at, created_at, updated_at, revision
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        is_pinned, sort_order, author_email, published_at, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         title = excluded.title,
         summary = excluded.summary,
@@ -214,16 +213,15 @@ async function handleApi(request, env, url) {
         status = excluded.status,
         is_pinned = excluded.is_pinned,
         published_at = excluded.published_at,
-        updated_at = excluded.updated_at,
-        revision = excluded.revision
+        updated_at = excluded.updated_at
     `).bind(
       id, slug, title, summary, content, subject, JSON.stringify(tags), status,
-      isPinned, nextOrder, auth.email, publishedAt, createdAt, now, revision,
+      isPinned, nextOrder, auth.email, publishedAt, createdAt, now,
     ).run();
 
     const saved = await env.DB.prepare(`
       SELECT id, slug, title, summary, content, subject, tags_json, status,
-             is_pinned, sort_order, published_at, created_at, updated_at, revision
+             is_pinned, sort_order, published_at, created_at, updated_at
       FROM study_posts WHERE id = ? LIMIT 1
     `).bind(id).first();
     const affectsPublicMirror = status === "published" || existing?.status === "published";
@@ -237,7 +235,7 @@ async function handleApi(request, env, url) {
   if (archiveMatch && request.method === "POST") {
     const existing = await env.DB.prepare("SELECT status FROM study_posts WHERE id = ? LIMIT 1").bind(archiveMatch[1]).first();
     await env.DB.prepare(`
-      UPDATE study_posts SET status = 'archived', updated_at = ?, revision = revision + 1
+      UPDATE study_posts SET status = 'archived', updated_at = ?
       WHERE id = ?
     `).bind(new Date().toISOString(), archiveMatch[1]).run();
     const sync = existing?.status === "published"
@@ -419,7 +417,6 @@ function serializePost(row) {
     publishedAt: row.published_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    revision: row.revision,
   };
 }
 

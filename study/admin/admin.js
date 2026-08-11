@@ -119,7 +119,7 @@ function initAdmin() {
         <button class="sidebar-post-open" type="button" data-open-id="${post.id}">
           <div class="sidebar-post-meta"><span>${escapeHtml(post.subject)}</span><span class="${post.status === "published" ? "published-badge" : "draft-badge"}">${post.status === "published" ? "已发布" : "草稿"}</span></div>
           <h3>${escapeHtml(post.title || "未命名文章")}</h3>
-          <div class="sidebar-post-meta"><span>${formatDate(post.updatedAt)}</span><span>REV. ${post.revision || 1}</span></div>
+          <div class="sidebar-post-meta"><span>修改 ${formatDate(post.updatedAt)}</span></div>
         </button>
         <button class="sort-handle" type="button" draggable="true" data-sort-handle="${post.id}" aria-label="拖动排序：${escapeHtml(post.title || "未命名文章")}" title="拖动排序，也可使用上下方向键">⠿</button>
       </article>

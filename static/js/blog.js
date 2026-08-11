@@ -32,7 +32,8 @@
     }
 
     function comparePosts(a, b) {
-        const dateDifference = new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime();
+        const dateDifference = new Date(b.updatedAt || b.publishedAt || 0).getTime()
+            - new Date(a.updatedAt || a.publishedAt || 0).getTime();
         if (state.sort === "date") return dateDifference;
         const aOrder = Number(a.sortOrder || 0);
         const bOrder = Number(b.sortOrder || 0);
@@ -58,7 +59,7 @@
 
         postsRoot.innerHTML = filtered.map((post) => `
             <a class="blog-card" href="${postHref(post.slug)}" data-blog-post-link="${board.escapeHtml(post.slug)}">
-                <time class="blog-date">${board.formatDate(post.publishedAt)}</time>
+                <time class="blog-date">${board.formatDate(post.updatedAt || post.publishedAt)}</time>
                 <div class="blog-card-content">
                     <span class="blog-subject">${board.escapeHtml(post.subject)}</span>
                     <h3>${board.escapeHtml(post.title)}</h3>
@@ -116,7 +117,7 @@
             document.title = `${post.title} — RuruSaika`;
             articleRoot.innerHTML = `
                 <header class="blog-article-header">
-                    <div class="blog-article-info"><span>${board.escapeHtml(post.subject)}</span><time>${board.formatDate(post.publishedAt, true)}</time><span>REV. ${post.revision || 1}</span></div>
+                    <div class="blog-article-info"><span>${board.escapeHtml(post.subject)}</span><time>发布 ${board.formatDate(post.publishedAt, true)}</time><time>修改 ${board.formatDate(post.updatedAt || post.publishedAt, true)}</time></div>
                     <h2>${board.escapeHtml(post.title)}</h2>
                     ${post.summary ? `<p>${board.escapeHtml(post.summary)}</p>` : ""}
                 </header>
