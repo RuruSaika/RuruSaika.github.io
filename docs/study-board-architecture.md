@@ -17,7 +17,7 @@ portfolio redesign does not endanger the accumulated articles.
   read-only; every write route verifies the signed-in ChatGPT user server-side
   against the configured owner email.
 - D1 is the durable content store. Posts are Markdown records with stable IDs,
-  slugs, status, revision, timestamps, category, and tags. The existing
+  slugs, status, timestamps, category, and tags. The existing
   `subject` field is kept as an internal compatibility boundary; the public
   categories are `生活`, `学习`, and `其它`, and legacy study subjects normalize
   to `学习` without destructive data migration.

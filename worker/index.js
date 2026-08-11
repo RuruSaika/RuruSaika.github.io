@@ -335,8 +335,7 @@ async function ensureSchema(env) {
         author_email TEXT NOT NULL,
         published_at TEXT,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        revision INTEGER NOT NULL DEFAULT 1
+        updated_at TEXT NOT NULL
       )`),
         env.DB.prepare(`CREATE TABLE IF NOT EXISTS study_assets (
         id TEXT PRIMARY KEY NOT NULL,
@@ -356,6 +355,9 @@ async function ensureSchema(env) {
       const columns = await env.DB.prepare("PRAGMA table_info(study_posts)").all();
       if (!columns.results.some((column) => column.name === "sort_order")) {
         await env.DB.prepare("ALTER TABLE study_posts ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0").run();
+      }
+      if (columns.results.some((column) => column.name === "revision")) {
+        await env.DB.prepare("ALTER TABLE study_posts DROP COLUMN revision").run();
       }
       await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_study_posts_sort_order ON study_posts(sort_order)").run();
     })().catch((error) => {
