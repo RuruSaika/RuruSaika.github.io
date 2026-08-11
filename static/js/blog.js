@@ -63,7 +63,7 @@
                 <div class="blog-card-content">
                     <span class="blog-subject">${board.escapeHtml(post.subject)}</span>
                     <h3>${board.escapeHtml(post.title)}</h3>
-                    <p>${board.escapeHtml(post.summary || "这篇文章暂时没有摘要。")}</p>
+                    ${String(post.summary || "").trim() ? `<p>${board.escapeHtml(post.summary)}</p>` : ""}
                     ${(post.tags || []).length ? `<div class="blog-tags">${post.tags.slice(0, 4).map((tag) => `<span>${board.escapeHtml(tag)}</span>`).join("")}</div>` : ""}
                 </div>
                 <span class="blog-arrow" aria-hidden="true">↗</span>

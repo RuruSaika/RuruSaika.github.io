@@ -132,6 +132,13 @@ assert.match(featureHtml, /href="https:\/\/example\.org"/);
 assert.doesNotMatch(featureHtml, /<script>/);
 assert.match(featureHtml, /&lt;script&gt;/);
 
+const markHtml = render("普通 ==高亮 **粗体**== 文字，`==代码==`，未闭合 ==原样保留。");
+assert.match(markHtml, /<mark>高亮 <strong>粗体<\/strong><\/mark>/);
+assert.match(markHtml, /<code>==代码==<\/code>/);
+assert.match(markHtml, /未闭合 ==原样保留/);
+assert.doesNotMatch(render("空标记 ==== 不高亮"), /<mark>/);
+assert.doesNotMatch(render("\\==转义标记=="), /<mark>/);
+
 const imageHtml = render("![示例](asset://123e4567-e89b-12d3-a456-426614174000)");
 assert.match(imageHtml, /src="https:\/\/rurusaika-home\.rurusaika-official\.chatgpt\.site\/api\/study\/assets\/123e4567-e89b-12d3-a456-426614174000"/);
 assert.match(imageHtml, /loading="lazy"/);

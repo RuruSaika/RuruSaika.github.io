@@ -32,6 +32,34 @@
       typographer: false,
     });
 
+    parser.inline.ruler.before("emphasis", "mark", (state, silent) => {
+      const start = state.pos;
+      if (state.src.slice(start, start + 2) !== "==" || state.src[start + 2] === "=") return false;
+      let end = start + 2;
+      while (end < state.posMax) {
+        end = state.src.indexOf("==", end);
+        if (end < 0 || end >= state.posMax) return false;
+        let escapes = 0;
+        for (let index = end - 1; index >= 0 && state.src[index] === "\\"; index -= 1) escapes += 1;
+        if (escapes % 2 === 0 && end > start + 2 && state.src[end + 2] !== "=") break;
+        end += 2;
+      }
+      if (end >= state.posMax || !state.src.slice(start + 2, end).trim()) return false;
+      if (!silent) {
+        const opening = state.push("mark_open", "mark", 1);
+        opening.markup = "==";
+        const originalMax = state.posMax;
+        state.pos = start + 2;
+        state.posMax = end;
+        state.md.inline.tokenize(state);
+        state.posMax = originalMax;
+        const closing = state.push("mark_close", "mark", -1);
+        closing.markup = "==";
+      }
+      state.pos = end + 2;
+      return true;
+    });
+
     const defaultImage = parser.renderer.rules.image
       || ((tokens, index, options, env, renderer) => renderer.renderToken(tokens, index, options));
     parser.renderer.rules.image = (tokens, index, options, env, renderer) => {
