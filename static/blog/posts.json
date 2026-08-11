@@ -20,6 +20,23 @@
       "updatedAt": "2026-08-10T23:19:42.985Z"
     },
     {
+      "id": "ddafbfdb-dd89-4eff-9d76-0ea0d854acc1",
+      "slug": "20260811-acbad2cc",
+      "title": "寻址方式",
+      "summary": "",
+      "content": "# 基本概念\n\n指令给出操作数或操作数地址的方式称为寻址方式\n\n常用的寻址方式有以下几种\n- 立即寻址\n- 直接寻址\n- 间接寻址\n- 寄存器寻址\n- 寄存器间接寻址\n- 变址寻址\n- 相对寻址\n- 基址寻址\n- 其它寻址方式",
+      "subject": "学习",
+      "tags": [
+        "408",
+        "计算机组成原理",
+        "指令系统"
+      ],
+      "isPinned": false,
+      "sortOrder": 2,
+      "publishedAt": "2026-08-11T01:28:53.283Z",
+      "updatedAt": "2026-08-11T01:28:53.283Z"
+    },
+    {
       "id": "1409db77-ef6c-4c52-a60f-c91660cda6a3",
       "slug": "20260810-b920eff0",
       "title": "外部存储器",
@@ -32,7 +49,7 @@
         "存储系统"
       ],
       "isPinned": false,
-      "sortOrder": 2,
+      "sortOrder": 3,
       "publishedAt": "2026-08-10T13:48:07.333Z",
       "updatedAt": "2026-08-10T22:53:30.138Z"
     },
@@ -49,7 +66,7 @@
         "存储系统"
       ],
       "isPinned": false,
-      "sortOrder": 3,
+      "sortOrder": 4,
       "publishedAt": "2026-08-08T14:41:46.966Z",
       "updatedAt": "2026-08-10T22:38:23.918Z"
     },
@@ -64,7 +81,7 @@
         "随笔"
       ],
       "isPinned": false,
-      "sortOrder": 4,
+      "sortOrder": 5,
       "publishedAt": "2026-08-08T09:27:25.381Z",
       "updatedAt": "2026-08-10T22:54:38.621Z"
     },
@@ -81,7 +98,7 @@
         "指令系统"
       ],
       "isPinned": false,
-      "sortOrder": 5,
+      "sortOrder": 6,
       "publishedAt": "2026-08-11T00:32:45.404Z",
       "updatedAt": "2026-08-11T00:32:45.404Z"
     },
@@ -98,26 +115,9 @@
         "指令系统"
       ],
       "isPinned": false,
-      "sortOrder": 6,
+      "sortOrder": 7,
       "publishedAt": "2026-08-11T00:54:49.381Z",
       "updatedAt": "2026-08-11T00:54:49.381Z"
-    },
-    {
-      "id": "ddafbfdb-dd89-4eff-9d76-0ea0d854acc1",
-      "slug": "20260811-acbad2cc",
-      "title": "寻址方式",
-      "summary": "",
-      "content": "# 基本概念\n\n指令给出操作数或操作数地址的方式称为寻址方式\n\n常用的寻址方式有以下几种\n- 立即寻址\n- 直接寻址\n- 间接寻址\n- 寄存器寻址\n- 寄存器间接寻址\n- 变址寻址\n- 相对寻址\n- 基址寻址\n- 其它寻址方式",
-      "subject": "学习",
-      "tags": [
-        "408",
-        "计算机组成原理",
-        "指令系统"
-      ],
-      "isPinned": false,
-      "sortOrder": 7,
-      "publishedAt": "2026-08-11T01:28:53.283Z",
-      "updatedAt": "2026-08-11T01:28:53.283Z"
     }
   ]
 }
