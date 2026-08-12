@@ -517,18 +517,32 @@ button { color: inherit; }
 
 .content-field { margin-bottom: 34px; }
 .content-label { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 8px; }
-.format-tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
-
-.format-tools button {
-  padding: 4px 7px;
-  border: 0;
-  background: transparent;
-  color: var(--faint);
-  cursor: pointer;
-  font-size: 0.66rem;
+.syntax-tips { position: relative; }
+.syntax-tips-trigger { padding: 4px 0; border: 0; background: transparent; color: var(--faint); cursor: help; font-size: 0.66rem; }
+.syntax-tips-trigger:hover, .syntax-tips-trigger:focus-visible { color: var(--accent); }
+.syntax-tips-panel {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 8px);
+  right: 0;
+  width: max-content;
+  max-width: min(360px, calc(100vw - 48px));
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--muted);
+  font-size: 0.68rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 140ms ease, transform 140ms ease, visibility 140ms;
 }
-
-.format-tools button:hover { color: var(--accent); }
+.syntax-tips:hover .syntax-tips-panel, .syntax-tips:focus-within .syntax-tips-panel { opacity: 1; visibility: visible; transform: none; }
+.syntax-tips-panel code { color: var(--text); font-family: var(--mono); }
 
 .content-field > textarea {
   min-height: 360px;
@@ -543,12 +557,13 @@ button { color: inherit; }
   line-height: 1.9;
 }
 
+.markdown-preview h1,
 .markdown-preview h2,
 .markdown-preview h3,
 .markdown-preview h4,
 .markdown-preview h5,
 .markdown-preview h6 { margin: 2.3em 0 0.8em; font-family: var(--serif); font-weight: 400; }
-.markdown-preview h2 { padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); font-size: 1.8rem; }
+.markdown-preview h1, .markdown-preview h2 { padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); font-size: 1.8rem; }
 .markdown-preview h3 { font-size: 1.35rem; }
 .markdown-preview a { color: var(--accent); text-underline-offset: 4px; }
 .markdown-preview mark { background: transparent; color: var(--accent); }
@@ -566,6 +581,23 @@ button { color: inherit; }
 .markdown-preview pre { overflow-x: auto; padding: 16px; border: 1px solid var(--border); background: var(--bg-elevated); font: 0.86rem/1.7 var(--mono); }
 .markdown-preview code:not(pre code) { padding: 0.15em 0.35em; background: var(--bg-elevated); font-family: var(--mono); font-size: 0.9em; }
 .markdown-preview img { display: block; max-width: 100%; height: auto; margin: 24px auto; }
+.markdown-preview figure { margin: 1.5rem 0; }
+.markdown-preview figcaption { margin-top: 0.5rem; color: var(--muted); font-family: var(--sans); font-size: 0.78rem; text-align: center; }
+.markdown-preview details { margin: 1.25rem 0; padding: 0.8rem 1rem; border: 1px solid var(--border); }
+.markdown-preview summary { cursor: pointer; color: var(--text); font-family: var(--sans); }
+.markdown-preview kbd { padding: 0.12rem 0.35rem; border: 1px solid var(--border-strong); font: 0.82em var(--mono); }
+
+.editor.editor-fullscreen {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  border: 0;
+  background: var(--bg);
+  box-shadow: none;
+}
+.editor.editor-fullscreen form { height: 100svh; }
+.editor.editor-fullscreen .editor-scroll { width: min(100%, 980px); margin-inline: auto; overflow-y: auto; }
+.admin-body.editor-is-fullscreen { overflow: hidden; }
 
 .upload-zone {
   display: grid;
@@ -646,7 +678,7 @@ button { color: inherit; }
   .admin-nav a { display: none; }
   .writing-heading h1 { font-size: 4.2rem; }
   .content-label { align-items: flex-start; flex-direction: column; }
-  .format-tools { justify-content: flex-start; }
+  .syntax-tips-panel { right: auto; left: 0; grid-template-columns: 1fr; }
   .upload-zone { grid-template-columns: auto 1fr; }
   .upload-zone small { display: none; }
   .editor-toolbar { align-items: flex-start; flex-direction: column; }

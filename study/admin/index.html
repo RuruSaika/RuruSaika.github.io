@@ -7,14 +7,14 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#0d1115">
   <meta name="rurusaika-preference-version" content="2026.08.10.1">
-  <meta name="rurusaika-site-version" content="2026.08.10.1.8">
+  <meta name="rurusaika-site-version" content="2026.08.10.1.9">
   <title>写作 — RuruSaika</title>
   <link rel="icon" href="../../static/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="admin.css?v=2026.08.10.1.8">
-  <script src="../../static/js/site-version.js?v=2026.08.10.1.8" defer></script>
+  <link rel="stylesheet" href="admin.css?v=2026.08.10.1.9">
+  <script src="../../static/js/site-version.js?v=2026.08.10.1.9" defer></script>
   <script src="../../static/vendor/markdown-it/markdown-it.umd.min.js?v=15.0.0" defer></script>
-  <script src="../shared.js?v=2026.08.10.1.8" defer></script>
-  <script src="admin.js?v=2026.08.10.1.8" defer></script>
+  <script src="../shared.js?v=2026.08.10.1.9" defer></script>
+  <script src="admin.js?v=2026.08.10.1.9" defer></script>
 </head>
 <body class="admin-body">
   <a class="skip-link" href="#admin-main">跳到编辑区</a>
@@ -87,6 +87,7 @@
               <div class="editor-status"><span class="status-dot"></span><span data-status-label>新草稿</span></div>
               <div class="editor-quiet-actions">
                 <button class="text-button" type="button" data-preview-toggle>预览</button>
+                <button class="text-button" type="button" data-fullscreen-toggle aria-pressed="false">全屏编辑</button>
                 <button class="text-button danger-button" type="button" data-archive hidden>归档</button>
                 <button class="text-button danger-button" type="button" data-delete hidden>永久删除</button>
               </div>
@@ -121,15 +122,22 @@
               <div class="content-field">
                 <div class="content-label">
                   <span>正文</span>
-                  <div class="format-tools" aria-label="Markdown 快捷工具">
-                    <button type="button" data-insert="## ">标题</button>
-                    <button type="button" data-wrap="**">加粗</button>
-                    <button type="button" data-insert="> ">引用</button>
-                    <button type="button" data-insert="- ">列表</button>
-                    <button type="button" data-wrap="`">代码</button>
+                  <div class="syntax-tips">
+                    <button class="syntax-tips-trigger" type="button" aria-describedby="syntax-tips-panel">语法提示</button>
+                    <div class="syntax-tips-panel" id="syntax-tips-panel" role="tooltip">
+                      <span><code>##</code> 标题</span>
+                      <span><code>**文字**</code> 加粗</span>
+                      <span><code>==文字==</code> 强调</span>
+                      <span><code>-</code> / <code>1.</code> 列表</span>
+                      <span><code>&gt;</code> 引用</span>
+                      <span><code>`代码`</code> 行内代码</span>
+                      <span><code>```</code> 代码块</span>
+                      <span><code>[文字](链接)</code> 链接</span>
+                      <span><code>&lt;tag&gt;</code> 安全 HTML</span>
+                    </div>
                   </div>
                 </div>
-                <textarea data-content rows="20" placeholder="从这里开始写正文……&#10;&#10;支持 Markdown，也可以粘贴或拖入图片。"></textarea>
+                <textarea data-content rows="20" placeholder="从这里开始写正文……&#10;&#10;支持 Markdown 和安全 HTML，也可以粘贴或拖入图片。"></textarea>
                 <div class="markdown-preview article-body" data-preview hidden></div>
               </div>
 
@@ -158,7 +166,7 @@
 
     <footer class="admin-footer">
       <span>RuruSaika / PRIVATE</span>
-      <span>V. <span data-site-version>2026.08.10.1.8</span></span>
+      <span>V. <span data-site-version>2026.08.10.1.9</span></span>
     </footer>
     <div class="toast" data-toast role="status" aria-live="polite"></div>
   </div>

@@ -40,7 +40,7 @@ if (!isSitesHost) {
 }
 
 function initAdmin() {
-  const state = { posts: [], current: null, dirty: false, preview: false, saving: false, reordering: false, orderVersion: 0, savedOrderVersion: 0, orderTimer: 0 };
+  const state = { posts: [], current: null, dirty: false, preview: false, fullscreen: false, saving: false, reordering: false, orderVersion: 0, savedOrderVersion: 0, orderTimer: 0 };
   const $ = (selector) => document.querySelector(selector);
   const authScreen = $("[data-auth-screen]");
   const adminApp = $("[data-admin-app]");
@@ -49,6 +49,8 @@ function initAdmin() {
   const postList = $("[data-post-list]");
   const content = $("[data-content]");
   const preview = $("[data-preview]");
+  const editor = $("[data-editor]");
+  const fullscreenButton = $("[data-fullscreen-toggle]");
   const toastRoot = $("[data-toast]");
   let toastTimer;
   let pointerDrag = null;
@@ -265,6 +267,7 @@ function initAdmin() {
     const data = await response.json();
     if (!response.ok) return toast(data.error || "归档失败。", true);
     state.current = null;
+    setFullscreen(false);
     form.hidden = true;
     editorEmpty.hidden = false;
     markDirty(false);
@@ -284,6 +287,7 @@ function initAdmin() {
     const data = await response.json();
     if (!response.ok) return toast(data.error || "永久删除失败。", true);
     state.current = null;
+    setFullscreen(false);
     form.hidden = true;
     editorEmpty.hidden = false;
     localStorage.removeItem("ruru-study-unsaved");
@@ -312,6 +316,15 @@ function initAdmin() {
     content.hidden = next;
     $("[data-preview-toggle]").textContent = next ? "继续编辑" : "预览";
     if (next) preview.innerHTML = renderMarkdown(content.value) || "<p>还没有正文内容。</p>";
+  }
+
+  function setFullscreen(next) {
+    state.fullscreen = next;
+    editor.classList.toggle("editor-fullscreen", next);
+    document.body.classList.toggle("editor-is-fullscreen", next);
+    fullscreenButton.textContent = next ? "退出全屏" : "全屏编辑";
+    fullscreenButton.setAttribute("aria-pressed", String(next));
+    if (next && !state.preview) content.focus();
   }
 
   function insertAtCursor(before, after = "") {
@@ -437,10 +450,12 @@ function initAdmin() {
   form.addEventListener("submit", (event) => { event.preventDefault(); save("published"); });
   $("[data-save-draft]").addEventListener("click", () => save("draft"));
   $("[data-preview-toggle]").addEventListener("click", () => setPreview(!state.preview));
+  fullscreenButton.addEventListener("click", () => setFullscreen(!state.fullscreen));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && state.fullscreen) setFullscreen(false);
+  });
   $("[data-archive]").addEventListener("click", archiveCurrent);
   $("[data-delete]").addEventListener("click", deleteCurrent);
-  document.querySelectorAll("[data-insert]").forEach((button) => button.addEventListener("click", () => insertAtCursor(button.dataset.insert)));
-  document.querySelectorAll("[data-wrap]").forEach((button) => button.addEventListener("click", () => insertAtCursor(button.dataset.wrap, button.dataset.wrap)));
 
   const uploadZone = $("[data-upload-zone]");
   const fileInput = $("[data-file-input]");

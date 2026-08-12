@@ -113,7 +113,7 @@ const value = "<safe>";
 [参考链接]: https://example.org "标题"
 [引用式链接][参考链接]
 
-<script>alert("raw html must stay text")</script>
+<div class="note"><strong>HTML 内容</strong></div>
 `);
 assert.match(featureHtml, /<h2>一级标题<\/h2>/);
 assert.match(featureHtml, /<strong>粗体<\/strong>/);
@@ -129,8 +129,7 @@ assert.match(featureHtml, /<hr>/);
 assert.match(featureHtml, /<code class="language-js">/);
 assert.match(featureHtml, /&lt;safe&gt;/);
 assert.match(featureHtml, /href="https:\/\/example\.org"/);
-assert.doesNotMatch(featureHtml, /<script>/);
-assert.match(featureHtml, /&lt;script&gt;/);
+assert.match(featureHtml, /<div class="note"><strong>HTML 内容<\/strong><\/div>/);
 
 const markHtml = render("普通 ==高亮 **粗体**== 文字，`==代码==`，未闭合 ==原样保留。");
 assert.match(markHtml, /<mark>高亮 <strong>粗体<\/strong><\/mark>/);
@@ -138,6 +137,9 @@ assert.match(markHtml, /<code>==代码==<\/code>/);
 assert.match(markHtml, /未闭合 ==原样保留/);
 assert.doesNotMatch(render("空标记 ==== 不高亮"), /<mark>/);
 assert.doesNotMatch(render("\\==转义标记=="), /<mark>/);
+
+const rawHtml = render(`<details open><summary>展开</summary><p class="note" data-kind="demo">HTML 内容</p></details>`);
+assert.match(rawHtml, /<details open><summary>展开<\/summary><p class="note" data-kind="demo">HTML 内容<\/p><\/details>/);
 
 const imageHtml = render("![示例](asset://123e4567-e89b-12d3-a456-426614174000)");
 assert.match(imageHtml, /src="https:\/\/rurusaika-home\.rurusaika-official\.chatgpt\.site\/api\/study\/assets\/123e4567-e89b-12d3-a456-426614174000"/);
@@ -164,4 +166,4 @@ assert.equal(tabOutdented.value, "- item");
 assert.equal(tabOutdented.selectionStart, 2);
 assert.equal(tabOutdented.selectionEnd, 2);
 
-console.log("Markdown list tests passed.");
+console.log("Markdown rendering tests passed.");
