@@ -1,9 +1,9 @@
 (() => {
     const preferenceVersions = Object.freeze({
-        github: "2026.08.10.1",
-        sites: "2026.08.10.1",
+        github: "2026.08.12.4",
+        sites: "2026.08.12.4",
     });
-    const releaseNumbers = Object.freeze({ github: 9, sites: 10 });
+    const releaseNumbers = Object.freeze({ github: 1, sites: 1 });
     const target = location.hostname.endsWith("chatgpt.site") ? "sites" : "github";
     const versions = Object.freeze({
         github: `${preferenceVersions.github}.${releaseNumbers.github}`,

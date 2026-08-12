@@ -26,6 +26,7 @@ function applyTheme(theme, persist = true) {
     themeButton.setAttribute("aria-pressed", String(isLight));
     themeButton.setAttribute("aria-label", `切换为${isLight ? "深色" : "浅色"}主题`);
     themeColor.setAttribute("content", isLight ? "#d8d9dd" : "#0b0e10");
+    window.StudyBoard?.setThemeFavicon(isLight ? "light" : "dark");
     if (persist) saveTheme(isLight ? "light" : "dark");
 }
 

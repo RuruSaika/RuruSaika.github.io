@@ -23,6 +23,13 @@
     })[char]);
   }
 
+  function setThemeFavicon(theme) {
+    document.querySelectorAll("[data-theme-favicon]").forEach((favicon) => {
+      const href = theme === "light" ? favicon.dataset.lightHref : favicon.dataset.darkHref;
+      if (href && favicon.getAttribute("href") !== href) favicon.setAttribute("href", href);
+    });
+  }
+
   function createMarkdownParser() {
     if (typeof window.markdownit !== "function") return null;
     const parser = window.markdownit({
@@ -253,5 +260,5 @@
     ).format(new Date(value));
   }
 
-  window.StudyBoard = { SITES_ORIGIN, apiUrl, assetUrl, escapeHtml, renderMarkdown, adjustMarkdownIndent, formatDate, isSitesHost, isLocal };
+  window.StudyBoard = { SITES_ORIGIN, apiUrl, assetUrl, escapeHtml, setThemeFavicon, renderMarkdown, adjustMarkdownIndent, formatDate, isSitesHost, isLocal };
 })();

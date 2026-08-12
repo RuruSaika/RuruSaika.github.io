@@ -611,6 +611,8 @@ button { color: inherit; }
 }
 
 .upload-zone:hover, .upload-zone.dragging { border-color: var(--accent); }
+.upload-zone[aria-disabled="true"] { cursor: default; opacity: 0.55; }
+.upload-zone[aria-disabled="true"]:hover { border-color: var(--border); }
 .upload-symbol { color: var(--accent); font-size: 1.4rem; }
 .upload-zone strong { font-size: 0.8rem; }
 .upload-zone p { margin: 2px 0 0; color: var(--muted); font-size: 0.7rem; }

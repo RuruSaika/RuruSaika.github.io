@@ -1,4 +1,4 @@
-const { SITES_ORIGIN, apiUrl, escapeHtml, renderMarkdown, adjustMarkdownIndent, formatDate, isSitesHost } = window.StudyBoard;
+const { SITES_ORIGIN, apiUrl, escapeHtml, setThemeFavicon, renderMarkdown, adjustMarkdownIndent, formatDate, isSitesHost, isLocal } = window.StudyBoard;
 
 const adminRoot = document.documentElement;
 const adminThemeButton = document.querySelector("[data-admin-theme-toggle]");
@@ -15,6 +15,7 @@ function applyAdminTheme(theme, persist = true) {
   adminThemeLabel.textContent = isLight ? "深色" : "浅色";
   adminThemeButton.setAttribute("aria-label", `切换为${isLight ? "深色" : "浅色"}主题`);
   adminThemeColor.setAttribute("content", isLight ? "#e9ecef" : "#0d1115");
+  setThemeFavicon(isLight ? "light" : "dark");
   if (persist) {
     try { localStorage.setItem("ruru-theme", isLight ? "light" : "dark"); } catch { /* Theme still works without storage. */ }
   }
@@ -33,7 +34,7 @@ function reorderPostList(posts, postId, targetId, placeAfter = false) {
   return true;
 }
 
-if (!isSitesHost) {
+if (!isSitesHost && !isLocal) {
   location.replace(`${SITES_ORIGIN}/study/admin/`);
 } else {
   initAdmin();
@@ -64,6 +65,18 @@ function initAdmin() {
     retry.hidden = true;
     authScreen.hidden = false;
     adminApp.hidden = true;
+    if (isLocal) {
+      authScreen.hidden = true;
+      adminApp.hidden = false;
+      newPost();
+      $("[data-save-state]").textContent = "本地只读预览";
+      $("[data-export]").hidden = true;
+      document.querySelector('a[href^="/signout-with-chatgpt"]')?.setAttribute("hidden", "");
+      $("[data-save-draft]").disabled = true;
+      $("[data-publish]").disabled = true;
+      $("[data-upload-zone]").setAttribute("aria-disabled", "true");
+      return;
+    }
     try {
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), 12000);
@@ -337,6 +350,7 @@ function initAdmin() {
   }
 
   async function uploadFiles(files) {
+    if (isLocal) return;
     const images = [...files].filter((file) => file.type.startsWith("image/"));
     if (!images.length) return;
     const uploadState = $("[data-upload-state]");
@@ -459,8 +473,8 @@ function initAdmin() {
 
   const uploadZone = $("[data-upload-zone]");
   const fileInput = $("[data-file-input]");
-  uploadZone.addEventListener("click", () => fileInput.click());
-  uploadZone.addEventListener("keydown", (event) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); fileInput.click(); } });
+  uploadZone.addEventListener("click", () => { if (!isLocal) fileInput.click(); });
+  uploadZone.addEventListener("keydown", (event) => { if (!isLocal && ["Enter", " "].includes(event.key)) { event.preventDefault(); fileInput.click(); } });
   fileInput.addEventListener("change", () => { uploadFiles(fileInput.files); fileInput.value = ""; });
   uploadZone.addEventListener("dragover", (event) => { event.preventDefault(); uploadZone.classList.add("dragging"); });
   uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("dragging"));
