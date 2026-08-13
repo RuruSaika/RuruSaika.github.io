@@ -580,6 +580,8 @@ button { color: inherit; }
 .markdown-preview blockquote { margin-left: 0; padding-left: 20px; border-left: 2px solid var(--accent); color: var(--muted); }
 .markdown-preview pre { overflow-x: auto; padding: 16px; border: 1px solid var(--border); background: var(--bg-elevated); font: 0.86rem/1.7 var(--mono); }
 .markdown-preview code:not(pre code) { padding: 0.15em 0.35em; background: var(--bg-elevated); font-family: var(--mono); font-size: 0.9em; }
+.markdown-preview .katex { font-size: 1.05em; }
+.markdown-preview .katex-display { max-width: 100%; margin: 1.8rem 0; padding: 0.25rem 0 0.4rem; overflow-x: auto; overflow-y: hidden; }
 .markdown-preview img { display: block; max-width: 100%; height: auto; margin: 24px auto; }
 .markdown-preview figure { margin: 1.5rem 0; }
 .markdown-preview figcaption { margin-top: 0.5rem; color: var(--muted); font-family: var(--sans); font-size: 0.78rem; text-align: center; }

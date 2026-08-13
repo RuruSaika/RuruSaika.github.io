@@ -123,6 +123,7 @@
                 </header>
                 <div class="blog-article-body">${board.renderMarkdown(post.content)}</div>
             `;
+            board.renderLatex(articleRoot.querySelector(".blog-article-body"));
         } catch (error) {
             articleRoot.innerHTML = `<div class="blog-article-state"><strong>文章暂时无法打开</strong><p>${board.escapeHtml(error.message || "请稍后重试。")}</p></div>`;
         }

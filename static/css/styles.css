@@ -515,6 +515,15 @@ button { color: inherit; }
     font-size: 0.88em;
 }
 
+.blog-article-body .katex { font-size: 1.05em; }
+.blog-article-body .katex-display {
+    max-width: 100%;
+    margin: 1.8rem 0;
+    padding: 0.25rem 0 0.4rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
 .blog-article-body img {
     display: block;
     max-width: 100%;

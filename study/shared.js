@@ -211,6 +211,23 @@
     return value ? `<p>${escapeHtml(value).replace(/\n/g, "<br>")}</p>` : "";
   }
 
+  function renderLatex(root) {
+    if (!root || typeof window.renderMathInElement !== "function") return;
+    window.renderMathInElement(root, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "\\[", right: "\\]", display: true },
+        { left: "$", right: "$", display: false },
+        { left: "\\(", right: "\\)", display: false },
+      ],
+      throwOnError: false,
+      strict: "warn",
+      trust: false,
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
+      ignoredClasses: ["no-latex"],
+    });
+  }
+
   function adjustMarkdownIndent(markdown, selectionStart, selectionEnd, outdent = false) {
     const value = String(markdown || "");
     const start = Math.max(0, Math.min(Number(selectionStart) || 0, value.length));
@@ -260,5 +277,5 @@
     ).format(new Date(value));
   }
 
-  window.StudyBoard = { SITES_ORIGIN, apiUrl, assetUrl, escapeHtml, setThemeFavicon, renderMarkdown, adjustMarkdownIndent, formatDate, isSitesHost, isLocal };
+  window.StudyBoard = { SITES_ORIGIN, apiUrl, assetUrl, escapeHtml, setThemeFavicon, renderMarkdown, renderLatex, adjustMarkdownIndent, formatDate, isSitesHost, isLocal };
 })();

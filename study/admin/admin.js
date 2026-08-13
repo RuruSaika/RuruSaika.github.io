@@ -1,4 +1,4 @@
-const { SITES_ORIGIN, apiUrl, escapeHtml, setThemeFavicon, renderMarkdown, adjustMarkdownIndent, formatDate, isSitesHost, isLocal } = window.StudyBoard;
+const { SITES_ORIGIN, apiUrl, escapeHtml, setThemeFavicon, renderMarkdown, renderLatex, adjustMarkdownIndent, formatDate, isSitesHost, isLocal } = window.StudyBoard;
 
 const adminRoot = document.documentElement;
 const adminThemeButton = document.querySelector("[data-admin-theme-toggle]");
@@ -227,6 +227,7 @@ function initAdmin() {
     $(".status-dot").classList.toggle("published", post.status === "published");
     $("[data-publish]").textContent = post.status === "published" ? "更新发布" : "发布文章";
     preview.innerHTML = renderMarkdown(content.value);
+    renderLatex(preview);
     setPreview(false);
   }
 
@@ -328,7 +329,10 @@ function initAdmin() {
     preview.hidden = !next;
     content.hidden = next;
     $("[data-preview-toggle]").textContent = next ? "继续编辑" : "预览";
-    if (next) preview.innerHTML = renderMarkdown(content.value) || "<p>还没有正文内容。</p>";
+    if (next) {
+      preview.innerHTML = renderMarkdown(content.value) || "<p>还没有正文内容。</p>";
+      renderLatex(preview);
+    }
   }
 
   function setFullscreen(next) {

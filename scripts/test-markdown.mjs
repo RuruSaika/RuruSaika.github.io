@@ -12,8 +12,14 @@ vm.runInNewContext(vendorSource, context);
 vm.runInNewContext(source, context);
 
 const render = context.StudyBoard.renderMarkdown;
+const renderLatex = context.StudyBoard.renderLatex;
 const adjustIndent = context.StudyBoard.adjustMarkdownIndent;
 const compact = (value) => value.replace(/\s+/g, "");
+
+assert.equal(typeof renderLatex, "function");
+assert.doesNotThrow(() => renderLatex(null));
+assert.match(render("行内公式 $E = mc^2$。"), /\$E = mc\^2\$/);
+assert.match(render("$$\\frac{1}{2}$$"), /\$\$\\frac\{1\}\{2\}\$\$/);
 
 assert.equal(compact(render(`
 - parent
