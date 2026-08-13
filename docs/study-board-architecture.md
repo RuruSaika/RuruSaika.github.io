@@ -24,8 +24,8 @@ portfolio redesign does not endanger the accumulated articles.
 - Manual article order is stored in the `sort_order` column. The private editor
   persists the complete active-post order through an owner-only reorder endpoint.
   The public Blog defaults to this manual order and can switch locally to pure
-  reverse publication-date order. Rows without an assigned manual position fall
-  back to publication date until the first reorder is saved. The merged homepage
+  reverse modification-date order. Rows without an assigned manual position fall
+  back to modification date until the first reorder is saved. The merged homepage
   keeps this switch without changing the stored order.
 - The legacy `is_pinned` column is retained for storage and API compatibility,
   but it no longer controls presentation order. Manual ordering is the single

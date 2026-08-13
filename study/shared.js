@@ -207,7 +207,22 @@
 
   function renderMarkdown(markdown) {
     const value = String(markdown || "");
-    if (markdownParser) return sanitizeRenderedHtml(markdownParser.render(value));
+    if (markdownParser) {
+      const latexExpressions = [];
+      const protectedValue = value.replace(
+        /\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$\$[\s\S]*?\$\$|(?<!\\)\$(?!\$)(?:\\.|[^\\\n$])+(?<!\\)\$/g,
+        (expression) => {
+          const token = `\uE000RURULATEX${latexExpressions.length}\uE001`;
+          latexExpressions.push({ token, expression: escapeHtml(expression) });
+          return token;
+        },
+      );
+      const rendered = sanitizeRenderedHtml(markdownParser.render(protectedValue));
+      return latexExpressions.reduce(
+        (html, item) => html.split(item.token).join(item.expression),
+        rendered,
+      );
+    }
     return value ? `<p>${escapeHtml(value).replace(/\n/g, "<br>")}</p>` : "";
   }
 

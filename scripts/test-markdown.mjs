@@ -20,6 +20,11 @@ assert.equal(typeof renderLatex, "function");
 assert.doesNotThrow(() => renderLatex(null));
 assert.match(render("行内公式 $E = mc^2$。"), /\$E = mc\^2\$/);
 assert.match(render("$$\\frac{1}{2}$$"), /\$\$\\frac\{1\}\{2\}\$\$/);
+assert.match(render("\\[a^2+b^2=c^2\\]"), /\\\[a\^2\+b\^2=c\^2\\\]/);
+assert.match(render("\\(x_1 + x_2\\)"), /\\\(x_1 \+ x_2\\\)/);
+assert.match(render("复杂公式 $a*b* + x_1$"), /\$a\*b\* \+ x_1\$/);
+assert.doesNotMatch(render("复杂公式 $a*b* + x_1$"), /<em>/);
+assert.match(render("公式 $x < y$"), /\$x &lt; y\$/);
 
 assert.equal(compact(render(`
 - parent
