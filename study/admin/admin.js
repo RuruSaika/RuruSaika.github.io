@@ -31,8 +31,8 @@ if (!isSitesHost && !isLocal) {
 }
 
 function initAdmin() {
-  const POSTS_PER_PAGE = 8;
-  const state = { posts: [], current: null, dirty: false, preview: false, fullscreen: false, saving: false, page: 1, homepageSort: "updated_at" };
+  const MAX_POSTS_PER_PAGE = 7;
+  const state = { posts: [], current: null, dirty: false, preview: false, fullscreen: false, saving: false, page: 1, pageSize: MAX_POSTS_PER_PAGE, homepageSort: "updated_at" };
   const $ = (selector) => document.querySelector(selector);
   const authScreen = $("[data-auth-screen]");
   const adminApp = $("[data-admin-app]");
@@ -46,6 +46,7 @@ function initAdmin() {
   const toastRoot = $("[data-toast]");
   let toastTimer;
   let cleanupOutlineTracking = () => {};
+  let postListResizeFrame = 0;
 
   function setSaveState(message, mode = "saved") {
     const headerState = $("[data-save-state]");
@@ -127,7 +128,7 @@ function initAdmin() {
     $("[data-homepage-sort]").value = state.homepageSort;
     if (selectId) {
       const selectedIndex = getFilteredPosts().findIndex((post) => post.id === selectId);
-      if (selectedIndex >= 0) state.page = Math.floor(selectedIndex / POSTS_PER_PAGE) + 1;
+      if (selectedIndex >= 0) state.page = Math.floor(selectedIndex / state.pageSize) + 1;
     }
     renderPostList();
     if (selectId) {
@@ -143,12 +144,12 @@ function initAdmin() {
 
   function renderPostList() {
     const filtered = getFilteredPosts();
-    const pageCount = Math.max(1, Math.ceil(filtered.length / POSTS_PER_PAGE));
+    const pageCount = Math.max(1, Math.ceil(filtered.length / state.pageSize));
     state.page = Math.min(Math.max(1, state.page), pageCount);
-    const pagePosts = filtered.slice((state.page - 1) * POSTS_PER_PAGE, state.page * POSTS_PER_PAGE);
+    const pagePosts = filtered.slice((state.page - 1) * state.pageSize, state.page * state.pageSize);
     const pagination = $("[data-post-pagination]");
     $("[data-post-total]").textContent = state.posts.length;
-    pagination.hidden = filtered.length <= POSTS_PER_PAGE;
+    pagination.hidden = filtered.length <= state.pageSize;
     $("[data-admin-page-status]").textContent = `${String(state.page).padStart(2, "0")} / ${String(pageCount).padStart(2, "0")}`;
     $("[data-admin-page=\"previous\"]").disabled = state.page === 1;
     $("[data-admin-page=\"next\"]").disabled = state.page === pageCount;
@@ -167,8 +168,20 @@ function initAdmin() {
     `).join("");
   }
 
+  function fitPostListToAvailableHeight() {
+    const firstCard = postList.querySelector(".sidebar-post");
+    if (!firstCard || postList.clientHeight <= 0) return;
+    const cardHeight = Math.max(1, firstCard.getBoundingClientRect().height);
+    const nextPageSize = Math.max(1, Math.min(MAX_POSTS_PER_PAGE, Math.floor((postList.clientHeight + 1) / cardHeight)));
+    if (nextPageSize === state.pageSize) return;
+    const firstVisibleIndex = (state.page - 1) * state.pageSize;
+    state.pageSize = nextPageSize;
+    state.page = Math.floor(firstVisibleIndex / state.pageSize) + 1;
+    renderPostList();
+  }
+
   function changePostPage(direction) {
-    const pageCount = Math.max(1, Math.ceil(getFilteredPosts().length / POSTS_PER_PAGE));
+    const pageCount = Math.max(1, Math.ceil(getFilteredPosts().length / state.pageSize));
     const nextPage = Math.min(pageCount, Math.max(1, state.page + direction));
     if (nextPage === state.page) return;
     state.page = nextPage;
@@ -492,6 +505,10 @@ function initAdmin() {
     event.preventDefault();
     changePostPage(1);
   };
+  new ResizeObserver(() => {
+    window.cancelAnimationFrame(postListResizeFrame);
+    postListResizeFrame = window.requestAnimationFrame(fitPostListToAvailableHeight);
+  }).observe(postList);
   $("[data-new-post]").addEventListener("click", newPost);
   $("[data-empty-new]").addEventListener("click", newPost);
   $("[data-retry-auth]").addEventListener("click", boot);
