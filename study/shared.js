@@ -287,7 +287,10 @@
       frame = 0;
       const rootTop = usesWindow ? 0 : scrollRoot.getBoundingClientRect().top;
       const rootHeight = usesWindow ? window.innerHeight : scrollRoot.clientHeight;
-      const activationLine = rootTop + rootHeight * 0.2;
+      const activationOffset = Math.min(rootHeight * 0.3, 192);
+      const activationLine = rootTop + activationOffset;
+      const reserve = root.querySelector(".blog-article-reserve");
+      if (reserve) reserve.style.minHeight = `${Math.ceil(rootHeight - activationOffset + 32)}px`;
       let active = entries[0];
       entries.forEach((entry) => {
         if (entry.heading.getBoundingClientRect().top <= activationLine + 1) active = entry;

@@ -79,11 +79,6 @@
                             <button type="button" data-category="学习">学习</button>
                             <button type="button" data-category="其它">其它</button>
                         </div>
-                        <div class="blog-sort" data-blog-sort aria-label="文章排序方式">
-                            <span>排序</span>
-                            <button class="active" type="button" data-sort-mode="manual">推荐</button>
-                            <button type="button" data-sort-mode="date">最新修改</button>
-                        </div>
                     </div>
                 </div>
 
@@ -94,6 +89,11 @@
                 <div class="blog-list" data-blog-posts aria-live="polite">
                     <div class="blog-empty">正在整理文章……</div>
                 </div>
+                <nav class="blog-pagination" data-blog-pagination aria-label="文章分页" hidden>
+                    <button type="button" data-blog-page="previous">← 上一页</button>
+                    <span data-blog-page-status>01 / 01</span>
+                    <button type="button" data-blog-page="next">下一页 →</button>
+                </nav>
             </div>
 
             <article class="blog-reader" data-blog-reader hidden aria-live="polite">

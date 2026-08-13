@@ -24,16 +24,6 @@ function applyAdminTheme(theme, persist = true) {
 applyAdminTheme(readAdminTheme() || "dark", false);
 adminThemeButton.addEventListener("click", () => applyAdminTheme(adminRoot.dataset.theme === "light" ? "dark" : "light"));
 
-function reorderPostList(posts, postId, targetId, placeAfter = false) {
-  if (postId === targetId) return false;
-  const fromIndex = posts.findIndex((post) => post.id === postId);
-  if (fromIndex < 0 || !posts.some((post) => post.id === targetId)) return false;
-  const [moved] = posts.splice(fromIndex, 1);
-  const targetIndex = posts.findIndex((post) => post.id === targetId);
-  posts.splice(targetIndex + (placeAfter ? 1 : 0), 0, moved);
-  return true;
-}
-
 if (!isSitesHost && !isLocal) {
   location.replace(`${SITES_ORIGIN}/study/admin/`);
 } else {
@@ -41,7 +31,8 @@ if (!isSitesHost && !isLocal) {
 }
 
 function initAdmin() {
-  const state = { posts: [], current: null, dirty: false, preview: false, fullscreen: false, saving: false, reordering: false, orderVersion: 0, savedOrderVersion: 0, orderTimer: 0 };
+  const POSTS_PER_PAGE = 8;
+  const state = { posts: [], current: null, dirty: false, preview: false, fullscreen: false, saving: false, page: 1, homepageSort: "updated_at" };
   const $ = (selector) => document.querySelector(selector);
   const authScreen = $("[data-auth-screen]");
   const adminApp = $("[data-admin-app]");
@@ -54,7 +45,6 @@ function initAdmin() {
   const fullscreenButton = $("[data-fullscreen-toggle]");
   const toastRoot = $("[data-toast]");
   let toastTimer;
-  let pointerDrag = null;
   let cleanupOutlineTracking = () => {};
 
   function setSaveState(message, mode = "saved") {
@@ -77,6 +67,13 @@ function initAdmin() {
     authScreen.hidden = false;
     adminApp.hidden = true;
     if (isLocal) {
+      try {
+        const response = await fetch("/static/blog/posts.json", { cache: "no-store" });
+        const data = response.ok ? await response.json() : {};
+        state.posts = (data.posts || []).map((post) => ({ ...post, status: "published" }));
+        state.homepageSort = data.homepageSort === "published_at" ? "published_at" : "updated_at";
+        $("[data-homepage-sort]").value = state.homepageSort;
+      } catch { /* A missing snapshot should not block the local editor shell. */ }
       authScreen.hidden = true;
       adminApp.hidden = false;
       newPost();
@@ -85,6 +82,7 @@ function initAdmin() {
       document.querySelector('a[href^="/signout-with-chatgpt"]')?.setAttribute("hidden", "");
       $("[data-save-draft]").disabled = true;
       $("[data-publish]").disabled = true;
+      $("[data-homepage-sort]").disabled = true;
       $("[data-upload-zone]").setAttribute("aria-disabled", "true");
       return;
     }
@@ -125,6 +123,12 @@ function initAdmin() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "文章加载失败");
     state.posts = data.posts || [];
+    state.homepageSort = data.homepageSort === "published_at" ? "published_at" : "updated_at";
+    $("[data-homepage-sort]").value = state.homepageSort;
+    if (selectId) {
+      const selectedIndex = getFilteredPosts().findIndex((post) => post.id === selectId);
+      if (selectedIndex >= 0) state.page = Math.floor(selectedIndex / POSTS_PER_PAGE) + 1;
+    }
     renderPostList();
     if (selectId) {
       const selected = state.posts.find((post) => post.id === selectId);
@@ -132,72 +136,58 @@ function initAdmin() {
     }
   }
 
-  function renderPostList() {
+  function getFilteredPosts() {
     const query = $("[data-admin-search]").value.trim().toLowerCase();
-    const filtered = state.posts.filter((post) => [post.title, post.summary, post.subject, ...(post.tags || [])].join(" ").toLowerCase().includes(query));
+    return state.posts.filter((post) => [post.title, post.summary, post.subject, ...(post.tags || [])].join(" ").toLowerCase().includes(query));
+  }
+
+  function renderPostList() {
+    const filtered = getFilteredPosts();
+    const pageCount = Math.max(1, Math.ceil(filtered.length / POSTS_PER_PAGE));
+    state.page = Math.min(Math.max(1, state.page), pageCount);
+    const pagePosts = filtered.slice((state.page - 1) * POSTS_PER_PAGE, state.page * POSTS_PER_PAGE);
+    const pagination = $("[data-post-pagination]");
     $("[data-post-total]").textContent = state.posts.length;
+    pagination.hidden = filtered.length <= POSTS_PER_PAGE;
+    $("[data-admin-page-status]").textContent = `${String(state.page).padStart(2, "0")} / ${String(pageCount).padStart(2, "0")}`;
+    $("[data-admin-page=\"previous\"]").disabled = state.page === 1;
+    $("[data-admin-page=\"next\"]").disabled = state.page === pageCount;
     if (!filtered.length) {
       postList.innerHTML = `<div class="post-list-empty">${state.posts.length ? "没有找到匹配的文章。" : "还没有文章。点击上方按钮，写下第一篇。"}</div>`;
       return;
     }
-    postList.innerHTML = filtered.map((post) => `
+    postList.innerHTML = pagePosts.map((post) => `
       <article class="sidebar-post ${state.current?.id === post.id ? "active" : ""}" data-post-row data-post-id="${post.id}">
         <button class="sidebar-post-open" type="button" data-open-id="${post.id}">
           <div class="sidebar-post-meta"><span>${escapeHtml(post.subject)}</span><span class="${post.status === "published" ? "published-badge" : "draft-badge"}">${post.status === "published" ? "已发布" : "草稿"}</span></div>
           <h3>${escapeHtml(post.title || "未命名文章")}</h3>
           <div class="sidebar-post-meta"><span>修改 ${formatDate(post.updatedAt)}</span></div>
         </button>
-        <button class="sort-handle" type="button" draggable="true" data-sort-handle="${post.id}" aria-label="拖动排序：${escapeHtml(post.title || "未命名文章")}" title="拖动排序，也可使用上下方向键">⠿</button>
       </article>
     `).join("");
   }
 
-  function movePost(postId, targetId, placeAfter = false) {
-    if (!reorderPostList(state.posts, postId, targetId, placeAfter)) return;
-    state.posts.forEach((post, index) => { post.sortOrder = index + 1; });
-    state.orderVersion += 1;
-    renderPostList();
-    scheduleOrderSave();
-  }
-
-  function movePostByOffset(postId, offset) {
-    const index = state.posts.findIndex((post) => post.id === postId);
-    const targetIndex = index + offset;
-    if (index < 0 || targetIndex < 0 || targetIndex >= state.posts.length) return;
-    const targetId = state.posts[targetIndex].id;
-    movePost(postId, targetId, offset > 0);
-    requestAnimationFrame(() => postList.querySelector(`[data-sort-handle="${postId}"]`)?.focus());
-  }
-
-  function scheduleOrderSave() {
-    window.clearTimeout(state.orderTimer);
-    setSaveState("正在保存文章顺序…", "saving");
-    state.orderTimer = window.setTimeout(saveOrder, 280);
-  }
-
-  async function saveOrder() {
-    if (state.reordering) return;
-    state.reordering = true;
+  async function saveHomepageSort(value) {
+    const select = $("[data-homepage-sort]");
+    select.disabled = true;
+    setSaveState("正在保存主页排序…", "saving");
     try {
-      while (state.savedOrderVersion !== state.orderVersion) {
-        const version = state.orderVersion;
-        const response = await fetch(apiUrl("/api/study/admin/posts/reorder"), {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ ids: state.posts.map((post) => post.id) }),
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "排序保存失败");
-        state.savedOrderVersion = version;
-      }
-      setSaveState(state.dirty ? "有尚未保存的修改" : "文章顺序已保存", state.dirty ? "dirty" : "saved");
-      toast("文章顺序已更新。");
+      const response = await fetch(apiUrl("/api/study/admin/settings/homepage-sort"), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ value }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "主页排序保存失败");
+      state.homepageSort = data.homepageSort;
+      setSaveState(state.dirty ? "有尚未保存的修改" : "主页排序已保存", state.dirty ? "dirty" : "saved");
+      toast(data.sync?.queued === false ? "主页排序已保存；GitHub 镜像将稍后重试。" : "主页排序已保存，GitHub 镜像正在更新。", data.sync?.queued === false);
     } catch (error) {
-      setSaveState("排序保存失败", "error");
-      toast(error.message || "排序保存失败，请刷新后重试。", true);
-      await loadPosts(state.current?.id);
+      select.value = state.homepageSort;
+      setSaveState("主页排序保存失败", "error");
+      toast(error.message || "主页排序保存失败，请重试。", true);
     } finally {
-      state.reordering = false;
+      select.disabled = false;
     }
   }
 
@@ -247,7 +237,7 @@ function initAdmin() {
     const document = renderMarkdownDocument(content.value);
     const outlineHtml = renderOutline(document.outline);
     preview.innerHTML = document.html
-      ? `<div class="preview-document${outlineHtml ? " has-outline" : ""}">${outlineHtml ? `<aside class="preview-outline">${outlineHtml}</aside>` : ""}<div class="preview-body">${document.html}</div></div>`
+      ? `<div class="preview-document${outlineHtml ? " has-outline" : ""}">${outlineHtml ? `<aside class="preview-outline">${outlineHtml}</aside>` : ""}<div class="preview-body">${document.html}<div class="blog-article-reserve" aria-hidden="true"></div></div>`
       : "<p>还没有正文内容。</p>";
     renderLatex(preview);
     requestAnimationFrame(() => {
@@ -479,71 +469,13 @@ function initAdmin() {
     const button = event.target.closest("[data-open-id]");
     if (button) openPost(state.posts.find((post) => post.id === button.dataset.openId));
   });
-  postList.addEventListener("keydown", (event) => {
-    const handle = event.target.closest("[data-sort-handle]");
-    if (!handle || !["ArrowUp", "ArrowDown"].includes(event.key)) return;
-    event.preventDefault();
-    movePostByOffset(handle.dataset.sortHandle, event.key === "ArrowUp" ? -1 : 1);
-  });
-  postList.addEventListener("dragstart", (event) => {
-    const handle = event.target.closest("[data-sort-handle]");
-    if (!handle) { event.preventDefault(); return; }
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", handle.dataset.sortHandle);
-    handle.closest("[data-post-row]").classList.add("dragging");
-  });
-  postList.addEventListener("dragover", (event) => {
-    const row = event.target.closest("[data-post-row]");
-    if (!row) return;
-    event.preventDefault();
-    postList.querySelectorAll(".drag-before, .drag-after").forEach((item) => item.classList.remove("drag-before", "drag-after"));
-    const bounds = row.getBoundingClientRect();
-    row.classList.add(event.clientY > bounds.top + bounds.height / 2 ? "drag-after" : "drag-before");
-  });
-  postList.addEventListener("drop", (event) => {
-    const row = event.target.closest("[data-post-row]");
-    if (!row) return;
-    event.preventDefault();
-    const bounds = row.getBoundingClientRect();
-    movePost(event.dataTransfer.getData("text/plain"), row.dataset.postId, event.clientY > bounds.top + bounds.height / 2);
-  });
-  postList.addEventListener("dragend", () => {
-    postList.querySelectorAll(".dragging, .drag-before, .drag-after").forEach((item) => item.classList.remove("dragging", "drag-before", "drag-after"));
-  });
-  postList.addEventListener("pointerdown", (event) => {
-    const handle = event.target.closest("[data-sort-handle]");
-    if (!handle || event.pointerType === "mouse") return;
-    event.preventDefault();
-    handle.setPointerCapture(event.pointerId);
-    pointerDrag = { id: handle.dataset.sortHandle, pointerId: event.pointerId };
-    handle.closest("[data-post-row]").classList.add("dragging");
-  });
-  postList.addEventListener("pointermove", (event) => {
-    if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
-    const row = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-post-row]");
-    postList.querySelectorAll(".drag-before, .drag-after").forEach((item) => item.classList.remove("drag-before", "drag-after"));
-    if (!row) return;
-    const bounds = row.getBoundingClientRect();
-    row.classList.add(event.clientY > bounds.top + bounds.height / 2 ? "drag-after" : "drag-before");
-  });
-  postList.addEventListener("pointerup", (event) => {
-    if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) return;
-    const row = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-post-row]");
-    if (row) {
-      const bounds = row.getBoundingClientRect();
-      movePost(pointerDrag.id, row.dataset.postId, event.clientY > bounds.top + bounds.height / 2);
-    }
-    pointerDrag = null;
-    postList.querySelectorAll(".dragging, .drag-before, .drag-after").forEach((item) => item.classList.remove("dragging", "drag-before", "drag-after"));
-  });
-  postList.addEventListener("pointercancel", () => {
-    pointerDrag = null;
-    postList.querySelectorAll(".dragging, .drag-before, .drag-after").forEach((item) => item.classList.remove("dragging", "drag-before", "drag-after"));
-  });
+  $("[data-admin-page=\"previous\"]").addEventListener("click", () => { state.page -= 1; renderPostList(); });
+  $("[data-admin-page=\"next\"]").addEventListener("click", () => { state.page += 1; renderPostList(); });
   $("[data-new-post]").addEventListener("click", newPost);
   $("[data-empty-new]").addEventListener("click", newPost);
   $("[data-retry-auth]").addEventListener("click", boot);
-  $("[data-admin-search]").addEventListener("input", renderPostList);
+  $("[data-admin-search]").addEventListener("input", () => { state.page = 1; renderPostList(); });
+  $("[data-homepage-sort]").addEventListener("change", (event) => saveHomepageSort(event.target.value));
   form.addEventListener("input", () => markDirty());
   content.addEventListener("input", resizeContentEditor);
   content.addEventListener("keydown", (event) => {

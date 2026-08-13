@@ -14,8 +14,6 @@
         "计算机组成原理",
         "中央处理器"
       ],
-      "isPinned": false,
-      "sortOrder": 1,
       "publishedAt": "2026-08-12T10:44:09.133Z",
       "updatedAt": "2026-08-13T10:00:59.468Z"
     },
@@ -31,8 +29,6 @@
         "计算机组成原理",
         "中央处理器"
       ],
-      "isPinned": false,
-      "sortOrder": 2,
       "publishedAt": "2026-08-11T22:23:34.048Z",
       "updatedAt": "2026-08-12T07:23:01.893Z"
     },
@@ -48,8 +44,6 @@
         "计算机组成原理",
         "数据的表示与运算"
       ],
-      "isPinned": false,
-      "sortOrder": 3,
       "publishedAt": "2026-08-11T16:01:39.130Z",
       "updatedAt": "2026-08-12T06:52:40.173Z"
     },
@@ -65,8 +59,6 @@
         "计算机组成原理",
         "存储系统"
       ],
-      "isPinned": false,
-      "sortOrder": 4,
       "publishedAt": "2026-08-10T13:48:07.333Z",
       "updatedAt": "2026-08-10T22:53:30.138Z"
     },
@@ -82,8 +74,6 @@
         "计算机组成原理",
         "指令系统"
       ],
-      "isPinned": false,
-      "sortOrder": 5,
       "publishedAt": "2026-08-10T22:38:17.564Z",
       "updatedAt": "2026-08-10T23:19:42.985Z"
     },
@@ -99,8 +89,6 @@
         "计算机组成原理",
         "指令系统"
       ],
-      "isPinned": false,
-      "sortOrder": 6,
       "publishedAt": "2026-08-11T00:54:49.381Z",
       "updatedAt": "2026-08-11T12:35:03.893Z"
     },
@@ -116,8 +104,6 @@
         "计算机组成原理",
         "存储系统"
       ],
-      "isPinned": false,
-      "sortOrder": 7,
       "publishedAt": "2026-08-08T14:41:46.966Z",
       "updatedAt": "2026-08-10T22:38:23.918Z"
     },
@@ -131,8 +117,6 @@
       "tags": [
         "随笔"
       ],
-      "isPinned": false,
-      "sortOrder": 8,
       "publishedAt": "2026-08-08T09:27:25.381Z",
       "updatedAt": "2026-08-11T09:56:49.929Z"
     },
@@ -148,8 +132,6 @@
         "计算机组成原理",
         "指令系统"
       ],
-      "isPinned": false,
-      "sortOrder": 9,
       "publishedAt": "2026-08-11T00:32:45.404Z",
       "updatedAt": "2026-08-11T00:32:45.404Z"
     },
@@ -163,10 +145,9 @@
       "tags": [
         "EGO"
       ],
-      "isPinned": false,
-      "sortOrder": 11,
       "publishedAt": "2026-08-13T09:00:12.030Z",
       "updatedAt": "2026-08-13T09:15:59.313Z"
     }
-  ]
+  ],
+  "homepageSort": "updated_at"
 }

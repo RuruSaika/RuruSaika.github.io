@@ -69,7 +69,7 @@ async function downloadAsset(id) {
   return { bytes, fileName: `${id}.${extension}`, publicPath: `/static/blog/assets/${id}.${extension}` };
 }
 
-const listPayload = await fetchJson("/api/study/posts?sort=manual&limit=100");
+const listPayload = await fetchJson("/api/study/posts?limit=100");
 if (!Array.isArray(listPayload.posts)) throw new Error("The public post list is invalid.");
 
 const posts = [];
@@ -88,6 +88,7 @@ const assetPaths = new Map(downloadedAssets.map((asset) => [asset.fileName.repla
 const snapshot = {
   schemaVersion: 1,
   source: SOURCE_ORIGIN.origin,
+  homepageSort: listPayload.homepageSort === "published_at" ? "published_at" : "updated_at",
   posts: posts.map((post) => ({ ...post, content: rewriteAssetUrls(post.content, assetPaths) })),
 };
 

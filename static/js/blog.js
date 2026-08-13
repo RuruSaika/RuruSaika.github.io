@@ -11,10 +11,11 @@
     const countRoot = section.querySelector("[data-blog-count]");
     const searchInput = section.querySelector("[data-blog-search]");
     const filterRoot = section.querySelector("[data-blog-filters]");
-    const sortRoot = section.querySelector("[data-blog-sort]");
+    const pagination = section.querySelector("[data-blog-pagination]");
     const backButton = section.querySelector("[data-blog-back]");
     const defaultTitle = document.title;
-    const state = { posts: [], category: "全部", sort: "manual", loaded: false };
+    const POSTS_PER_PAGE = 4;
+    const state = { posts: [], category: "全部", homepageSort: "updated_at", page: 1, loaded: false, currentTitle: null };
     let cleanupOutlineTracking = () => {};
 
     function postHref(title) {
@@ -33,14 +34,9 @@
     }
 
     function comparePosts(a, b) {
-        const dateDifference = new Date(b.updatedAt || b.publishedAt || 0).getTime()
-            - new Date(a.updatedAt || a.publishedAt || 0).getTime();
-        if (state.sort === "date") return dateDifference;
-        const aOrder = Number(a.sortOrder || 0);
-        const bOrder = Number(b.sortOrder || 0);
-        if (aOrder > 0 && bOrder > 0) return aOrder - bOrder || dateDifference;
-        if (aOrder > 0 || bOrder > 0) return aOrder > 0 ? 1 : -1;
-        return dateDifference;
+        const field = state.homepageSort === "published_at" ? "publishedAt" : "updatedAt";
+        const primaryDifference = new Date(b[field] || 0).getTime() - new Date(a[field] || 0).getTime();
+        return primaryDifference || new Date(b.updatedAt || b.publishedAt || 0).getTime() - new Date(a.updatedAt || a.publishedAt || 0).getTime();
     }
 
     function renderPosts() {
@@ -50,17 +46,25 @@
             const haystack = [post.title, post.summary, post.subject, ...(post.tags || [])].join(" ").toLowerCase();
             return categoryMatch && (!query || haystack.includes(query));
         }).sort(comparePosts);
+        const pageCount = Math.max(1, Math.ceil(filtered.length / POSTS_PER_PAGE));
+        state.page = Math.min(Math.max(1, state.page), pageCount);
+        const pagePosts = filtered.slice((state.page - 1) * POSTS_PER_PAGE, state.page * POSTS_PER_PAGE);
 
         countRoot.textContent = `${String(filtered.length).padStart(2, "0")} ARTICLES`;
+        pagination.hidden = filtered.length <= POSTS_PER_PAGE;
+        section.querySelector("[data-blog-page-status]").textContent = `${String(state.page).padStart(2, "0")} / ${String(pageCount).padStart(2, "0")}`;
+        section.querySelector('[data-blog-page="previous"]').disabled = state.page === 1;
+        section.querySelector('[data-blog-page="next"]').disabled = state.page === pageCount;
         if (!filtered.length) {
             const hasPosts = state.posts.length > 0;
             postsRoot.innerHTML = `<div class="blog-empty"><strong>${hasPosts ? "没有找到匹配的文章" : "暂无文章"}</strong><p>${hasPosts ? "换个关键词或分类试试。" : "文章发布后会显示在这里。"}</p></div>`;
             return;
         }
 
-        postsRoot.innerHTML = filtered.map((post) => `
+        const dateField = state.homepageSort === "published_at" ? "publishedAt" : "updatedAt";
+        postsRoot.innerHTML = pagePosts.map((post) => `
             <a class="blog-card" href="${postHref(post.title)}" data-blog-post-link="${board.escapeHtml(post.title)}">
-                <time class="blog-date">${board.formatDate(post.updatedAt || post.publishedAt)}</time>
+                <time class="blog-date">${board.formatDate(post[dateField] || post.updatedAt || post.publishedAt)}</time>
                 <div class="blog-card-content">
                     <span class="blog-subject">${board.escapeHtml(post.subject)}</span>
                     <h3>${board.escapeHtml(post.title)}</h3>
@@ -80,6 +84,7 @@
             if (!response.ok) throw new Error("load failed");
             const data = await response.json();
             state.posts = data.posts || [];
+            state.homepageSort = data.homepageSort === "published_at" ? "published_at" : "updated_at";
             state.loaded = true;
             renderPosts();
         } catch {
@@ -90,6 +95,7 @@
 
     function showIndex() {
         cleanupOutlineTracking();
+        state.currentTitle = null;
         reader.hidden = true;
         indexView.hidden = false;
         intro.hidden = false;
@@ -127,44 +133,52 @@
                 </header>
                 <div class="blog-article-layout${outlineHtml ? " has-outline" : ""}">
                     ${outlineHtml ? `<aside class="blog-article-outline">${outlineHtml}</aside>` : ""}
-                    <div class="blog-article-body">${markdownDocument.html}</div>
+                    <div class="blog-article-body">${markdownDocument.html}<div class="blog-article-reserve" aria-hidden="true"></div></div>
                 </div>
             `;
+            const outlineSidebar = articleRoot.querySelector(".blog-article-outline");
+            if (outlineSidebar) outlineSidebar.prepend(backButton);
+            else reader.insertBefore(backButton, articleRoot);
             board.renderLatex(articleRoot.querySelector(".blog-article-body"));
             cleanupOutlineTracking();
             cleanupOutlineTracking = board.bindOutlineTracking(articleRoot);
+            state.currentTitle = post.title;
         } catch (error) {
             cleanupOutlineTracking();
+            state.currentTitle = null;
+            reader.insertBefore(backButton, articleRoot);
             articleRoot.innerHTML = `<div class="blog-article-state"><strong>文章暂时无法打开</strong><p>${board.escapeHtml(error.message || "请稍后重试。")}</p></div>`;
         }
     }
 
     async function syncRoute({ scroll = false } = {}) {
         const title = new URL(location.href).searchParams.get("post");
-        if (title) await showArticle(title);
-        else showIndex();
+        const articleChanged = Boolean(title && state.currentTitle !== title);
+        if (articleChanged) await showArticle(title);
+        else if (!title) showIndex();
         const fragment = location.hash.slice(1);
-        if (title && fragment && fragment !== "blog") {
+        if (articleChanged && title && fragment && fragment !== "blog") {
             let targetId = fragment;
             try { targetId = decodeURIComponent(fragment); } catch {}
             document.getElementById(targetId)?.scrollIntoView({ block: "start" });
         } else if (scroll) section.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    searchInput.addEventListener("input", renderPosts);
+    searchInput.addEventListener("input", () => { state.page = 1; renderPosts(); });
     filterRoot.addEventListener("click", (event) => {
         const button = event.target.closest("[data-category]");
         if (!button) return;
         state.category = button.dataset.category;
+        state.page = 1;
         filterRoot.querySelectorAll("button").forEach((item) => item.classList.toggle("active", item === button));
         renderPosts();
     });
-    sortRoot.addEventListener("click", (event) => {
-        const button = event.target.closest("[data-sort-mode]");
-        if (!button) return;
-        state.sort = button.dataset.sortMode;
-        sortRoot.querySelectorAll("button").forEach((item) => item.classList.toggle("active", item === button));
+    pagination.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-blog-page]");
+        if (!button || button.disabled) return;
+        state.page += button.dataset.blogPage === "next" ? 1 : -1;
         renderPosts();
+        section.querySelector(".blog-summary").scrollIntoView({ behavior: "smooth", block: "start" });
     });
     postsRoot.addEventListener("click", (event) => {
         const link = event.target.closest("[data-blog-post-link]");

@@ -73,8 +73,19 @@
             <span class="visually-hidden">搜索文章</span>
             <input type="search" data-admin-search placeholder="搜索文章">
           </label>
-          <p class="sort-help">拖动右侧标志调整 Blog 的推荐顺序，也可以使用上下方向键。</p>
+          <label class="homepage-sort-setting">
+            <span>主页文章排序</span>
+            <select data-homepage-sort aria-label="主页文章排序方式">
+              <option value="updated_at">修改时间</option>
+              <option value="published_at">发布时间</option>
+            </select>
+          </label>
           <div class="post-list" data-post-list></div>
+          <nav class="post-pagination" data-post-pagination aria-label="文章列表分页" hidden>
+            <button type="button" data-admin-page="previous">←</button>
+            <span data-admin-page-status>01 / 01</span>
+            <button type="button" data-admin-page="next">→</button>
+          </nav>
         </aside>
 
         <section class="editor" data-editor aria-label="文章编辑器">

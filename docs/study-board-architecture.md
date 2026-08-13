@@ -21,15 +21,11 @@ portfolio redesign does not endanger the accumulated articles.
   `subject` field is kept as an internal compatibility boundary; the public
   categories are `生活`, `学习`, and `其它`, and legacy study subjects normalize
   to `学习` without destructive data migration.
-- Manual article order is stored in the `sort_order` column. The private editor
-  persists the complete active-post order through an owner-only reorder endpoint.
-  The public Blog defaults to this manual order and can switch locally to pure
-  reverse modification-date order. Rows without an assigned manual position fall
-  back to modification date until the first reorder is saved. The merged homepage
-  keeps this switch without changing the stored order.
-- The legacy `is_pinned` column is retained for storage and API compatibility,
-  but it no longer controls presentation order. Manual ordering is the single
-  authoritative way to place an article at the top of the Blog.
+- The editor owns one global `homepage_sort` setting, stored in `study_settings`.
+  It currently accepts `published_at` or `updated_at`, and the public Blog applies
+  the selected timestamp in reverse chronological order. Visitors cannot override
+  the choice locally. Article-level `sort_order` and legacy `is_pinned` data have
+  been removed.
 - R2 stores uploaded images. Markdown refers to images through portable
   `asset://<id>` tokens rather than deployment-specific URLs.
 
@@ -38,7 +34,7 @@ portfolio redesign does not endanger the accumulated articles.
 - `scripts/sync-public-blog.mjs` reads only published API routes, downloads
   referenced R2 images, rewrites their portable tokens to same-origin static
   paths, and writes a stable snapshot under `static/blog/`.
-- Publishing, unpublishing, archiving, deleting, or reordering public posts asks
+- Publishing, unpublishing, archiving, deleting, or changing the homepage sort asks
   GitHub Actions to run the mirror immediately. The API Worker keeps the
   fine-grained GitHub token in the server-only `GITHUB_SYNC_TOKEN` secret; the
   editor never receives it. The token only needs Actions read/write access to
