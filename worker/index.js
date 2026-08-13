@@ -92,9 +92,9 @@ async function handleApi(request, env, url) {
       SELECT id, slug, title, summary, content, subject, tags_json, is_pinned, sort_order,
              published_at, updated_at
       FROM study_posts
-      WHERE slug = ? AND status = 'published'
+      WHERE (slug = ? OR title = ?) AND status = 'published'
       LIMIT 1
-    `).bind(slug).first();
+    `).bind(slug, slug).first();
     return post
       ? json({ post: serializePost(post) }, 200, cors)
       : json({ error: "没有找到这篇文章。" }, 404, cors);
@@ -192,7 +192,9 @@ async function handleApi(request, env, url) {
     // Manual ordering supersedes pinning. Preserve legacy values on edits so
     // removing the editor control does not silently rewrite existing records.
     const isPinned = existing ? Number(existing.is_pinned || 0) : 0;
-    const slug = existing?.slug || createSlug(now);
+    const slug = title;
+    const duplicate = await env.DB.prepare("SELECT id FROM study_posts WHERE (slug = ? OR title = ?) AND id <> ? LIMIT 1").bind(slug, title, id).first();
+    if (duplicate) return json({ error: "已经存在同名文章，请使用不同的标题。" }, 409);
     const createdAt = existing?.created_at || now;
     const publishedAt = status === "published" ? (existing?.published_at || now) : existing?.published_at || null;
     const nextOrder = existing
@@ -205,6 +207,7 @@ async function handleApi(request, env, url) {
         is_pinned, sort_order, author_email, published_at, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
+        slug = excluded.slug,
         title = excluded.title,
         summary = excluded.summary,
         content = excluded.content,
@@ -448,10 +451,6 @@ function cleanText(value, max = 1000) {
 
 function validId(value) {
   return typeof value === "string" && /^[a-f0-9-]{36}$/i.test(value);
-}
-
-function createSlug(isoDate) {
-  return `${isoDate.slice(0, 10).replaceAll("-", "")}-${crypto.randomUUID().slice(0, 8)}`;
 }
 
 async function requestPublicMirrorSync(env, reason) {

@@ -90,6 +90,33 @@
       return defaultLinkOpen(tokens, index, options, env, renderer);
     };
 
+    const headingText = (token) => (token.children || []).map((child) => {
+      if (["text", "code_inline", "html_inline"].includes(child.type)) return child.content.replace(/<[^>]*>/g, "");
+      return child.type === "image" ? child.content : "";
+    }).join("").trim();
+    const headingId = (value, usedIds) => {
+      const base = String(value || "").normalize("NFKC").trim().toLowerCase()
+        .replace(/\s+/g, "-").replace(/[^\p{Letter}\p{Number}_-]/gu, "") || "section";
+      const count = (usedIds.get(base) || 0) + 1;
+      usedIds.set(base, count);
+      return count === 1 ? base : `${base}-${count}`;
+    };
+    parser.core.ruler.after("inline", "heading-outline", (state) => {
+      const usedIds = new Map();
+      state.env.outline = [];
+      for (let index = 0; index < state.tokens.length; index += 1) {
+        const token = state.tokens[index];
+        if (token.type !== "heading_open") continue;
+        const level = Number(token.tag.slice(1));
+        if (level < 1 || level > 4) continue;
+        const label = headingText(state.tokens[index + 1]);
+        if (!label) continue;
+        const id = headingId(label, usedIds);
+        token.attrSet("id", id);
+        state.env.outline.push({ id, label, level });
+      }
+    });
+
     const shiftHeading = (tokens, index, options, env, renderer) => {
       const token = tokens[index];
       const level = Number(token.tag.slice(1));
@@ -205,7 +232,7 @@
     return document.body.innerHTML;
   }
 
-  function renderMarkdown(markdown) {
+  function renderMarkdownDocument(markdown) {
     const value = String(markdown || "");
     if (markdownParser) {
       const latexExpressions = [];
@@ -217,13 +244,94 @@
           return token;
         },
       );
-      const rendered = sanitizeRenderedHtml(markdownParser.render(protectedValue));
-      return latexExpressions.reduce(
+      const env = {};
+      const rendered = sanitizeRenderedHtml(markdownParser.render(protectedValue, env));
+      const html = latexExpressions.reduce(
         (html, item) => html.split(item.token).join(item.expression),
         rendered,
       );
+      return { html, outline: env.outline || [] };
     }
-    return value ? `<p>${escapeHtml(value).replace(/\n/g, "<br>")}</p>` : "";
+    return { html: value ? `<p>${escapeHtml(value).replace(/\n/g, "<br>")}</p>` : "", outline: [] };
+  }
+
+  function renderMarkdown(markdown) {
+    return renderMarkdownDocument(markdown).html;
+  }
+
+  function renderOutline(outline, label = "文章目录") {
+    if (!Array.isArray(outline) || !outline.length) return "";
+    return `<nav class="article-outline" aria-label="${escapeHtml(label)}"><span class="article-outline-indicator" aria-hidden="true"></span><p>${escapeHtml(label)}</p><ol>${outline.map((item) => (
+      `<li data-level="${Number(item.level) || 1}"><a href="#${encodeURIComponent(item.id)}">${escapeHtml(item.label)}</a></li>`
+    )).join("")}</ol></nav>`;
+  }
+
+  function bindOutlineTracking(root, scrollRoot = window) {
+    const outline = root?.querySelector?.(".article-outline");
+    if (!outline) return () => {};
+    const links = [...outline.querySelectorAll("a[href^='#']")];
+    const entries = links.map((link) => {
+      let id = link.getAttribute("href").slice(1);
+      try { id = decodeURIComponent(id); } catch {}
+      return { link, heading: root.querySelector(`#${window.CSS?.escape ? window.CSS.escape(id) : id}`) };
+    }).filter((entry) => entry.heading);
+    if (!entries.length) return () => {};
+
+    const scrollingElement = document.scrollingElement;
+    const usesWindow = scrollRoot === window || scrollRoot === document || scrollRoot === scrollingElement;
+    const eventRoot = usesWindow ? window : scrollRoot;
+    let activeLink = null;
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+      const rootTop = usesWindow ? 0 : scrollRoot.getBoundingClientRect().top;
+      const rootHeight = usesWindow ? window.innerHeight : scrollRoot.clientHeight;
+      const activationLine = rootTop + rootHeight * 0.2;
+      let active = entries[0];
+      entries.forEach((entry) => {
+        if (entry.heading.getBoundingClientRect().top <= activationLine + 1) active = entry;
+      });
+      if (active.link === activeLink) return;
+
+      activeLink?.removeAttribute("aria-current");
+      activeLink?.classList.remove("active");
+      activeLink = active.link;
+      activeLink.classList.add("active");
+      activeLink.setAttribute("aria-current", "location");
+      outline.classList.add("has-active");
+
+      const indicatorHeight = Math.min(18, Math.max(12, activeLink.offsetHeight));
+      const indicatorTop = activeLink.offsetTop + (activeLink.offsetHeight - indicatorHeight) / 2;
+      outline.style.setProperty("--outline-indicator-y", `${indicatorTop}px`);
+      outline.style.setProperty("--outline-indicator-height", `${indicatorHeight}px`);
+
+      const item = activeLink.closest("li");
+      if (!item || outline.scrollHeight <= outline.clientHeight) return;
+      const itemTop = item.offsetTop;
+      const itemBottom = itemTop + item.offsetHeight;
+      const visibleTop = outline.scrollTop;
+      const visibleBottom = visibleTop + outline.clientHeight;
+      if (itemTop < visibleTop || itemBottom > visibleBottom) {
+        const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+        outline.scrollTo({
+          top: Math.max(0, itemTop - outline.clientHeight * 0.4),
+          behavior: reducedMotion ? "auto" : "smooth",
+        });
+      }
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+
+    eventRoot.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+    window.requestAnimationFrame(update);
+    return () => {
+      eventRoot.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }
 
   function renderLatex(root) {
@@ -292,5 +400,5 @@
     ).format(new Date(value));
   }
 
-  window.StudyBoard = { SITES_ORIGIN, apiUrl, assetUrl, escapeHtml, setThemeFavicon, renderMarkdown, renderLatex, adjustMarkdownIndent, formatDate, isSitesHost, isLocal };
+  window.StudyBoard = { SITES_ORIGIN, apiUrl, assetUrl, escapeHtml, setThemeFavicon, renderMarkdown, renderMarkdownDocument, renderOutline, bindOutlineTracking, renderLatex, adjustMarkdownIndent, formatDate, isSitesHost, isLocal };
 })();

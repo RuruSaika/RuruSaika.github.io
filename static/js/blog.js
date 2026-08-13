@@ -15,11 +15,12 @@
     const backButton = section.querySelector("[data-blog-back]");
     const defaultTitle = document.title;
     const state = { posts: [], category: "全部", sort: "manual", loaded: false };
+    let cleanupOutlineTracking = () => {};
 
-    function postHref(slug) {
+    function postHref(title) {
         const url = new URL(location.href);
         url.search = "";
-        url.searchParams.set("post", slug);
+        url.searchParams.set("post", title);
         url.hash = "blog";
         return `${url.pathname}${url.search}${url.hash}`;
     }
@@ -58,7 +59,7 @@
         }
 
         postsRoot.innerHTML = filtered.map((post) => `
-            <a class="blog-card" href="${postHref(post.slug)}" data-blog-post-link="${board.escapeHtml(post.slug)}">
+            <a class="blog-card" href="${postHref(post.title)}" data-blog-post-link="${board.escapeHtml(post.title)}">
                 <time class="blog-date">${board.formatDate(post.updatedAt || post.publishedAt)}</time>
                 <div class="blog-card-content">
                     <span class="blog-subject">${board.escapeHtml(post.subject)}</span>
@@ -88,6 +89,7 @@
     }
 
     function showIndex() {
+        cleanupOutlineTracking();
         reader.hidden = true;
         indexView.hidden = false;
         intro.hidden = false;
@@ -95,7 +97,7 @@
         document.title = defaultTitle;
     }
 
-    async function showArticle(slug) {
+    async function showArticle(title) {
         indexView.hidden = true;
         intro.hidden = true;
         reader.hidden = false;
@@ -105,35 +107,48 @@
         try {
             let post;
             if (board.isSitesHost) {
-                const response = await fetch(board.apiUrl(`/api/study/posts/${encodeURIComponent(slug)}`));
+                const response = await fetch(board.apiUrl(`/api/study/posts/${encodeURIComponent(title)}`));
                 const data = await response.json();
                 if (!response.ok || !data.post) throw new Error(data.error || "没有找到这篇文章。");
                 post = data.post;
             } else {
                 if (!state.loaded) await loadPosts();
-                post = state.posts.find((item) => item.slug === slug);
+                post = state.posts.find((item) => item.title === title);
                 if (!post) throw new Error("没有找到这篇文章。");
             }
             document.title = `${post.title} — RuruSaika`;
+            const markdownDocument = board.renderMarkdownDocument(post.content);
+            const outlineHtml = board.renderOutline(markdownDocument.outline);
             articleRoot.innerHTML = `
                 <header class="blog-article-header">
                     <div class="blog-article-info"><span>${board.escapeHtml(post.subject)}</span><time>发布 ${board.formatDate(post.publishedAt, true)}</time><time>修改 ${board.formatDate(post.updatedAt || post.publishedAt, true)}</time></div>
                     <h2>${board.escapeHtml(post.title)}</h2>
                     ${post.summary ? `<p>${board.escapeHtml(post.summary)}</p>` : ""}
                 </header>
-                <div class="blog-article-body">${board.renderMarkdown(post.content)}</div>
+                <div class="blog-article-layout${outlineHtml ? " has-outline" : ""}">
+                    ${outlineHtml ? `<aside class="blog-article-outline">${outlineHtml}</aside>` : ""}
+                    <div class="blog-article-body">${markdownDocument.html}</div>
+                </div>
             `;
             board.renderLatex(articleRoot.querySelector(".blog-article-body"));
+            cleanupOutlineTracking();
+            cleanupOutlineTracking = board.bindOutlineTracking(articleRoot);
         } catch (error) {
+            cleanupOutlineTracking();
             articleRoot.innerHTML = `<div class="blog-article-state"><strong>文章暂时无法打开</strong><p>${board.escapeHtml(error.message || "请稍后重试。")}</p></div>`;
         }
     }
 
     async function syncRoute({ scroll = false } = {}) {
-        const slug = new URL(location.href).searchParams.get("post");
-        if (slug) await showArticle(slug);
+        const title = new URL(location.href).searchParams.get("post");
+        if (title) await showArticle(title);
         else showIndex();
-        if (scroll) section.scrollIntoView({ behavior: "smooth", block: "start" });
+        const fragment = location.hash.slice(1);
+        if (title && fragment && fragment !== "blog") {
+            let targetId = fragment;
+            try { targetId = decodeURIComponent(fragment); } catch {}
+            document.getElementById(targetId)?.scrollIntoView({ block: "start" });
+        } else if (scroll) section.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     searchInput.addEventListener("input", renderPosts);

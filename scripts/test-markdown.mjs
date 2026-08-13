@@ -12,11 +12,14 @@ vm.runInNewContext(vendorSource, context);
 vm.runInNewContext(source, context);
 
 const render = context.StudyBoard.renderMarkdown;
+const renderDocument = context.StudyBoard.renderMarkdownDocument;
+const bindOutlineTracking = context.StudyBoard.bindOutlineTracking;
 const renderLatex = context.StudyBoard.renderLatex;
 const adjustIndent = context.StudyBoard.adjustMarkdownIndent;
 const compact = (value) => value.replace(/\s+/g, "");
 
 assert.equal(typeof renderLatex, "function");
+assert.equal(typeof bindOutlineTracking, "function");
 assert.doesNotThrow(() => renderLatex(null));
 assert.match(render("行内公式 $E = mc^2$。"), /\$E = mc\^2\$/);
 assert.match(render("$$\\frac{1}{2}$$"), /\$\$\\frac\{1\}\{2\}\$\$/);
@@ -126,7 +129,7 @@ const value = "<safe>";
 
 <div class="note"><strong>HTML 内容</strong></div>
 `);
-assert.match(featureHtml, /<h2>一级标题<\/h2>/);
+assert.match(featureHtml, /<h2 id="一级标题">一级标题<\/h2>/);
 assert.match(featureHtml, /<strong>粗体<\/strong>/);
 assert.match(featureHtml, /<em>斜体<\/em>/);
 assert.match(featureHtml, /<s>删除线<\/s>/);
@@ -151,6 +154,15 @@ assert.doesNotMatch(render("\\==转义标记=="), /<mark>/);
 
 const rawHtml = render(`<details open><summary>展开</summary><p class="note" data-kind="demo">HTML 内容</p></details>`);
 assert.match(rawHtml, /<details open><summary>展开<\/summary><p class="note" data-kind="demo">HTML 内容<\/p><\/details>/);
+
+const outlined = renderDocument("# 开始\n\n## 重复\n\n### 重复\n\n##### 不收录");
+assert.deepEqual(JSON.parse(JSON.stringify(outlined.outline)), [
+  { id: "开始", label: "开始", level: 1 },
+  { id: "重复", label: "重复", level: 2 },
+  { id: "重复-2", label: "重复", level: 3 },
+]);
+assert.match(outlined.html, /<h2 id="开始">开始<\/h2>/);
+assert.match(outlined.html, /<h4 id="重复-2">重复<\/h4>/);
 
 const imageHtml = render("![示例](asset://123e4567-e89b-12d3-a456-426614174000)");
 assert.match(imageHtml, /src="https:\/\/rurusaika-home\.rurusaika-official\.chatgpt\.site\/api\/study\/assets\/123e4567-e89b-12d3-a456-426614174000"/);

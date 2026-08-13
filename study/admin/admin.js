@@ -1,4 +1,4 @@
-const { SITES_ORIGIN, apiUrl, escapeHtml, setThemeFavicon, renderMarkdown, renderLatex, adjustMarkdownIndent, formatDate, isSitesHost, isLocal } = window.StudyBoard;
+const { SITES_ORIGIN, apiUrl, escapeHtml, setThemeFavicon, renderMarkdownDocument, renderOutline, bindOutlineTracking, renderLatex, adjustMarkdownIndent, formatDate, isSitesHost, isLocal } = window.StudyBoard;
 
 const adminRoot = document.documentElement;
 const adminThemeButton = document.querySelector("[data-admin-theme-toggle]");
@@ -55,6 +55,17 @@ function initAdmin() {
   const toastRoot = $("[data-toast]");
   let toastTimer;
   let pointerDrag = null;
+  let cleanupOutlineTracking = () => {};
+
+  function setSaveState(message, mode = "saved") {
+    const headerState = $("[data-save-state]");
+    headerState.textContent = message;
+    headerState.classList.toggle("dirty", mode === "dirty");
+    headerState.classList.toggle("error", mode === "error");
+    headerState.classList.toggle("saving", mode === "saving");
+    $("[data-fullscreen-save-state-label]").textContent = message;
+    $("[data-fullscreen-save-state]").dataset.state = mode;
+  }
 
   async function boot() {
     const message = $("[data-auth-message]");
@@ -69,7 +80,7 @@ function initAdmin() {
       authScreen.hidden = true;
       adminApp.hidden = false;
       newPost();
-      $("[data-save-state]").textContent = "本地只读预览";
+      setSaveState("本地只读预览", "readonly");
       $("[data-export]").hidden = true;
       document.querySelector('a[href^="/signout-with-chatgpt"]')?.setAttribute("hidden", "");
       $("[data-save-draft]").disabled = true;
@@ -160,7 +171,7 @@ function initAdmin() {
 
   function scheduleOrderSave() {
     window.clearTimeout(state.orderTimer);
-    $("[data-save-state]").textContent = "正在保存文章顺序…";
+    setSaveState("正在保存文章顺序…", "saving");
     state.orderTimer = window.setTimeout(saveOrder, 280);
   }
 
@@ -179,10 +190,10 @@ function initAdmin() {
         if (!response.ok) throw new Error(data.error || "排序保存失败");
         state.savedOrderVersion = version;
       }
-      $("[data-save-state]").textContent = state.dirty ? "有尚未保存的修改" : "文章顺序已保存";
+      setSaveState(state.dirty ? "有尚未保存的修改" : "文章顺序已保存", state.dirty ? "dirty" : "saved");
       toast("文章顺序已更新。");
     } catch (error) {
-      $("[data-save-state]").textContent = "排序保存失败";
+      setSaveState("排序保存失败", "error");
       toast(error.message || "排序保存失败，请刷新后重试。", true);
       await loadPosts(state.current?.id);
     } finally {
@@ -227,9 +238,21 @@ function initAdmin() {
     $("[data-status-label]").textContent = post.status === "published" ? `已发布 · ${formatDate(post.publishedAt)}` : post.id ? "草稿" : "新草稿";
     $(".status-dot").classList.toggle("published", post.status === "published");
     $("[data-publish]").textContent = post.status === "published" ? "更新发布" : "发布文章";
-    preview.innerHTML = renderMarkdown(content.value);
-    renderLatex(preview);
+    renderPreview();
     setPreview(false);
+  }
+
+  function renderPreview() {
+    cleanupOutlineTracking();
+    const document = renderMarkdownDocument(content.value);
+    const outlineHtml = renderOutline(document.outline);
+    preview.innerHTML = document.html
+      ? `<div class="preview-document${outlineHtml ? " has-outline" : ""}">${outlineHtml ? `<aside class="preview-outline">${outlineHtml}</aside>` : ""}<div class="preview-body">${document.html}</div></div>`
+      : "<p>还没有正文内容。</p>";
+    renderLatex(preview);
+    requestAnimationFrame(() => {
+      if (!preview.hidden) cleanupOutlineTracking = bindOutlineTracking(preview, getEditorScrollContainer());
+    });
   }
 
   function collectPayload(status) {
@@ -249,7 +272,7 @@ function initAdmin() {
     const payload = collectPayload(status);
     if (!payload.title) { toast("请先填写标题。", true); $("[data-title]").focus(); return; }
     state.saving = true;
-    $("[data-save-state]").textContent = "正在保存…";
+    setSaveState("正在保存…", "saving");
     try {
       const response = await fetch(apiUrl("/api/study/admin/posts"), {
         method: "POST",
@@ -268,7 +291,7 @@ function initAdmin() {
         toast(status === "published" ? "文章已发布，GitHub 镜像正在更新。" : "草稿已保存。");
       }
     } catch (error) {
-      $("[data-save-state]").textContent = "保存失败";
+      setSaveState("保存失败", "error");
       toast(error.message || "保存失败，请稍后重试。", true);
     } finally {
       state.saving = false;
@@ -313,9 +336,7 @@ function initAdmin() {
 
   function markDirty(dirty = true) {
     state.dirty = dirty;
-    const root = $("[data-save-state]");
-    root.textContent = dirty ? "有尚未保存的修改" : "所有修改均已保存";
-    root.classList.toggle("dirty", dirty);
+    setSaveState(dirty ? "有尚未保存的修改" : "所有修改均已保存", dirty ? "dirty" : "saved");
     if (dirty) {
       localStorage.setItem("ruru-study-unsaved", JSON.stringify({ ...collectPayload(state.current?.status || "draft"), savedAt: Date.now() }));
     }
@@ -374,7 +395,10 @@ function initAdmin() {
       preview.hidden = !next;
       content.hidden = next;
       $("[data-preview-toggle]").textContent = next ? "继续编辑" : "预览";
-      if (!next) requestAnimationFrame(resizeContentEditor);
+      if (!next) {
+        cleanupOutlineTracking();
+        requestAnimationFrame(resizeContentEditor);
+      }
       return;
     }
 
@@ -384,15 +408,17 @@ function initAdmin() {
 
     if (next) {
       preview.style.removeProperty("height");
-      preview.innerHTML = renderMarkdown(content.value) || "<p>还没有正文内容。</p>";
-      renderLatex(preview);
+      renderPreview();
     }
 
     state.preview = next;
     preview.hidden = !next;
     content.hidden = next;
     $("[data-preview-toggle]").textContent = next ? "继续编辑" : "预览";
-    if (!next) resizeContentEditor();
+    if (!next) {
+      cleanupOutlineTracking();
+      resizeContentEditor();
+    }
     restoreDocumentPosition(next ? preview : content, documentPosition, editorScroll);
   }
 
