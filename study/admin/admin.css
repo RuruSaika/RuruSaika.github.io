@@ -644,6 +644,7 @@ button { color: inherit; }
 .markdown-preview [id] { scroll-margin-top: 24px; }
 .markdown-preview .blog-article-reserve { min-height: calc(100svh - min(30svh, 12rem) + 2rem); }
 .markdown-preview a { color: var(--accent); text-underline-offset: 4px; }
+.markdown-preview u { text-decoration-color: var(--accent); }
 .markdown-preview mark { background: transparent; color: var(--accent); }
 .markdown-preview ul, .markdown-preview ol { margin: 1rem 0; padding-left: 1.6rem; }
 .markdown-preview li { margin: 0.45rem 0; padding-left: 0.15rem; }

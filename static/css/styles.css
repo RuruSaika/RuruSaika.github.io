@@ -561,6 +561,7 @@ button { color: inherit; }
 .blog-article-body h3 { font-size: 1.45rem; }
 .blog-article-body p { margin: 1.2rem 0; }
 .blog-article-body a { color: var(--accent); text-underline-offset: 0.2em; }
+.blog-article-body u { text-decoration-color: var(--accent); }
 .blog-article-body mark { background: transparent; color: var(--accent); }
 .blog-article-body ul, .blog-article-body ol { margin: 1rem 0; padding-left: 1.6rem; }
 .blog-article-body li { margin: 0.45rem 0; padding-left: 0.15rem; }
