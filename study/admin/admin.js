@@ -167,6 +167,15 @@ function initAdmin() {
     `).join("");
   }
 
+  function changePostPage(direction) {
+    const pageCount = Math.max(1, Math.ceil(getFilteredPosts().length / POSTS_PER_PAGE));
+    const nextPage = Math.min(pageCount, Math.max(1, state.page + direction));
+    if (nextPage === state.page) return;
+    state.page = nextPage;
+    renderPostList();
+    postList.querySelector("[data-open-id]")?.focus({ preventScroll: true });
+  }
+
   async function saveHomepageSort(value) {
     const select = $("[data-homepage-sort]");
     select.disabled = true;
@@ -469,8 +478,20 @@ function initAdmin() {
     const button = event.target.closest("[data-open-id]");
     if (button) openPost(state.posts.find((post) => post.id === button.dataset.openId));
   });
-  $("[data-admin-page=\"previous\"]").addEventListener("click", () => { state.page -= 1; renderPostList(); });
-  $("[data-admin-page=\"next\"]").addEventListener("click", () => { state.page += 1; renderPostList(); });
+  const previousPageButton = $("[data-admin-page=\"previous\"]");
+  const nextPageButton = $("[data-admin-page=\"next\"]");
+  previousPageButton.onclick = (event) => { event.preventDefault(); changePostPage(-1); };
+  nextPageButton.onclick = (event) => { event.preventDefault(); changePostPage(1); };
+  previousPageButton.onkeydown = (event) => {
+    if (!["Enter", " "].includes(event.key)) return;
+    event.preventDefault();
+    changePostPage(-1);
+  };
+  nextPageButton.onkeydown = (event) => {
+    if (!["Enter", " "].includes(event.key)) return;
+    event.preventDefault();
+    changePostPage(1);
+  };
   $("[data-new-post]").addEventListener("click", newPost);
   $("[data-empty-new]").addEventListener("click", newPost);
   $("[data-retry-auth]").addEventListener("click", boot);

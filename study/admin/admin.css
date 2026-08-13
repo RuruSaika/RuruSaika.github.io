@@ -345,11 +345,14 @@ button { color: inherit; }
 .homepage-sort-setting option { background: var(--surface); color: var(--text); }
 
 .post-pagination {
+  position: relative;
+  z-index: 2;
   display: grid;
   grid-template-columns: 2.5rem 1fr 2.5rem;
   align-items: center;
   gap: 8px;
   padding-top: 12px;
+  background: var(--bg);
   color: var(--faint);
   font: 0.62rem var(--mono);
   text-align: center;
@@ -369,6 +372,7 @@ button { color: inherit; }
 
 .post-list {
   min-height: 0;
+  overflow: hidden;
   border-top: 1px solid var(--border);
 }
 
