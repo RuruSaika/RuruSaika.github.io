@@ -221,6 +221,7 @@ function initAdmin() {
     $("[data-title]").value = post.title || "";
     $("[data-summary]").value = post.summary || "";
     content.value = post.content || "";
+    requestAnimationFrame(resizeContentEditor);
     $("[data-subject]").value = post.subject || "其它";
     $("[data-tags]").value = (post.tags || []).join("，");
     $("[data-status-label]").textContent = post.status === "published" ? `已发布 · ${formatDate(post.publishedAt)}` : post.id ? "草稿" : "新草稿";
@@ -324,15 +325,59 @@ function initAdmin() {
     return !state.dirty || confirm("当前有尚未保存的修改，确定离开吗？");
   }
 
+  function resizeContentEditor() {
+    if (content.hidden) return;
+    content.style.height = "auto";
+    content.style.height = String(Math.max(360, content.scrollHeight)) + "px";
+  }
+
+  function readDocumentPosition(element, scrollContainer) {
+    const elementTop = element.getBoundingClientRect().top - scrollContainer.getBoundingClientRect().top + scrollContainer.scrollTop;
+    if (scrollContainer.scrollTop <= elementTop) return { absolute: scrollContainer.scrollTop };
+    const maximum = Math.max(1, element.scrollHeight - scrollContainer.clientHeight);
+    const progress = Math.min(1, Math.max(0, (scrollContainer.scrollTop - elementTop) / maximum));
+    return { progress };
+  }
+
+  function restoreDocumentPosition(element, position, scrollContainer) {
+    const restore = () => {
+      if (position.absolute !== undefined) {
+        scrollContainer.scrollTop = position.absolute;
+        return;
+      }
+      const elementTop = element.getBoundingClientRect().top - scrollContainer.getBoundingClientRect().top + scrollContainer.scrollTop;
+      const maximum = Math.max(0, element.scrollHeight - scrollContainer.clientHeight);
+      scrollContainer.scrollTop = elementTop + maximum * position.progress;
+    };
+    restore();
+    requestAnimationFrame(() => requestAnimationFrame(restore));
+  }
+
   function setPreview(next) {
+    if (state.preview === next) {
+      preview.hidden = !next;
+      content.hidden = next;
+      $("[data-preview-toggle]").textContent = next ? "继续编辑" : "预览";
+      if (!next) requestAnimationFrame(resizeContentEditor);
+      return;
+    }
+
+    const currentView = state.preview ? preview : content;
+    const editorScroll = $(".editor-scroll");
+    const documentPosition = readDocumentPosition(currentView, editorScroll);
+
+    if (next) {
+      preview.style.removeProperty("height");
+      preview.innerHTML = renderMarkdown(content.value) || "<p>还没有正文内容。</p>";
+      renderLatex(preview);
+    }
+
     state.preview = next;
     preview.hidden = !next;
     content.hidden = next;
     $("[data-preview-toggle]").textContent = next ? "继续编辑" : "预览";
-    if (next) {
-      preview.innerHTML = renderMarkdown(content.value) || "<p>还没有正文内容。</p>";
-      renderLatex(preview);
-    }
+    if (!next) resizeContentEditor();
+    restoreDocumentPosition(next ? preview : content, documentPosition, editorScroll);
   }
 
   function setFullscreen(next) {
@@ -349,6 +394,7 @@ function initAdmin() {
     const end = content.selectionEnd;
     const selected = content.value.slice(start, end);
     content.setRangeText(`${before}${selected}${after}`, start, end, "end");
+    resizeContentEditor();
     content.focus();
     markDirty();
   }
@@ -457,12 +503,14 @@ function initAdmin() {
   $("[data-retry-auth]").addEventListener("click", boot);
   $("[data-admin-search]").addEventListener("input", renderPostList);
   form.addEventListener("input", () => markDirty());
+  content.addEventListener("input", resizeContentEditor);
   content.addEventListener("keydown", (event) => {
     if (event.key !== "Tab") return;
     event.preventDefault();
     const adjusted = adjustMarkdownIndent(content.value, content.selectionStart, content.selectionEnd, event.shiftKey);
     content.value = adjusted.value;
     content.setSelectionRange(adjusted.selectionStart, adjusted.selectionEnd);
+    resizeContentEditor();
     markDirty();
   });
   form.addEventListener("submit", (event) => { event.preventDefault(); save("published"); });

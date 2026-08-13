@@ -545,7 +545,9 @@ button { color: inherit; }
 .syntax-tips-panel code { color: var(--text); font-family: var(--mono); }
 
 .content-field > textarea {
+  overflow-y: hidden;
   min-height: 360px;
+  resize: none;
   font: 0.92rem/1.85 var(--mono);
 }
 
