@@ -325,14 +325,30 @@ function initAdmin() {
     return !state.dirty || confirm("当前有尚未保存的修改，确定离开吗？");
   }
 
+  function getEditorScrollContainer() {
+    const editorScroll = $(".editor-scroll");
+    const overflow = getComputedStyle(editorScroll).overflowY;
+    return ["auto", "scroll"].includes(overflow) ? editorScroll : document.scrollingElement;
+  }
+
+  function readElementTop(element, scrollContainer) {
+    const containerTop = scrollContainer === document.scrollingElement
+      ? 0
+      : scrollContainer.getBoundingClientRect().top;
+    return element.getBoundingClientRect().top - containerTop + scrollContainer.scrollTop;
+  }
+
   function resizeContentEditor() {
     if (content.hidden) return;
+    const scrollContainer = getEditorScrollContainer();
+    const scrollPosition = scrollContainer.scrollTop;
     content.style.height = "auto";
     content.style.height = String(Math.max(360, content.scrollHeight)) + "px";
+    scrollContainer.scrollTop = scrollPosition;
   }
 
   function readDocumentPosition(element, scrollContainer) {
-    const elementTop = element.getBoundingClientRect().top - scrollContainer.getBoundingClientRect().top + scrollContainer.scrollTop;
+    const elementTop = readElementTop(element, scrollContainer);
     if (scrollContainer.scrollTop <= elementTop) return { absolute: scrollContainer.scrollTop };
     const maximum = Math.max(1, element.scrollHeight - scrollContainer.clientHeight);
     const progress = Math.min(1, Math.max(0, (scrollContainer.scrollTop - elementTop) / maximum));
@@ -345,7 +361,7 @@ function initAdmin() {
         scrollContainer.scrollTop = position.absolute;
         return;
       }
-      const elementTop = element.getBoundingClientRect().top - scrollContainer.getBoundingClientRect().top + scrollContainer.scrollTop;
+      const elementTop = readElementTop(element, scrollContainer);
       const maximum = Math.max(0, element.scrollHeight - scrollContainer.clientHeight);
       scrollContainer.scrollTop = elementTop + maximum * position.progress;
     };
@@ -363,7 +379,7 @@ function initAdmin() {
     }
 
     const currentView = state.preview ? preview : content;
-    const editorScroll = $(".editor-scroll");
+    const editorScroll = getEditorScrollContainer();
     const documentPosition = readDocumentPosition(currentView, editorScroll);
 
     if (next) {
