@@ -1,16 +1,17 @@
 :root {
     color-scheme: dark;
-    --bg: #0b0e10;
-    --surface: #101519;
-    --text: #e6eaec;
-    --text-soft: #a5adb2;
-    --text-faint: #737d83;
-    --line: #2a3237;
-    --line-strong: #455158;
+    --bg: #101010;
+    --surface: #1a1a1a;
+    --surface-elevated: #262626;
+    --text: #f2f2f2;
+    --text-soft: #b0b0b0;
+    --text-faint: #7a7a7a;
+    --line: #3b3b3b;
+    --line-strong: #505050;
     --accent: #00d3ff;
-    --accent-ink: #051014;
-    --header-bg: rgba(11, 14, 16, 0.9);
-    --selection: rgba(0, 211, 255, 0.24);
+    --accent-ink: #101010;
+    --header-bg: rgba(16, 16, 16, 0.9);
+    --selection: rgba(0, 211, 255, 0.2);
     --max-width: 1120px;
     --reading-width: 720px;
     --page-pad: clamp(1.25rem, 4vw, 3rem);
@@ -23,6 +24,7 @@
     color-scheme: light;
     --bg: #d8d9dd;
     --surface: #e2e3e6;
+    --surface-elevated: #e2e3e6;
     --text: #171a1c;
     --text-soft: #51595e;
     --text-faint: #6b7479;
@@ -594,13 +596,13 @@ button { color: inherit; }
     overflow-x: auto;
     padding: 1.25rem;
     border: 1px solid var(--line);
-    background: var(--surface);
+    background: var(--surface-elevated);
     font: 0.88rem/1.7 var(--mono);
 }
 
 .blog-article-body code:not(pre code) {
     padding: 0.12rem 0.3rem;
-    background: var(--surface);
+    background: var(--surface-elevated);
     font-family: var(--mono);
     font-size: 0.88em;
 }

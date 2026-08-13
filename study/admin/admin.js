@@ -14,14 +14,15 @@ function applyAdminTheme(theme, persist = true) {
   adminRoot.dataset.theme = isLight ? "light" : "dark";
   adminThemeLabel.textContent = isLight ? "深色" : "浅色";
   adminThemeButton.setAttribute("aria-label", `切换为${isLight ? "深色" : "浅色"}主题`);
-  adminThemeColor.setAttribute("content", isLight ? "#e9ecef" : "#0d1115");
+  adminThemeColor.setAttribute("content", isLight ? "#e9ecef" : "#101010");
   setThemeFavicon(isLight ? "light" : "dark");
   if (persist) {
     try { localStorage.setItem("ruru-theme", isLight ? "light" : "dark"); } catch { /* Theme still works without storage. */ }
   }
 }
 
-applyAdminTheme(readAdminTheme() || "dark", false);
+const adminBrowserTheme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+applyAdminTheme(readAdminTheme() || adminBrowserTheme, false);
 adminThemeButton.addEventListener("click", () => applyAdminTheme(adminRoot.dataset.theme === "light" ? "dark" : "light"));
 
 if (!isSitesHost && !isLocal) {

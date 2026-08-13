@@ -25,12 +25,13 @@ function applyTheme(theme, persist = true) {
     themeLabel.textContent = isLight ? "深色" : "浅色";
     themeButton.setAttribute("aria-pressed", String(isLight));
     themeButton.setAttribute("aria-label", `切换为${isLight ? "深色" : "浅色"}主题`);
-    themeColor.setAttribute("content", isLight ? "#d8d9dd" : "#0b0e10");
+    themeColor.setAttribute("content", isLight ? "#d8d9dd" : "#101010");
     window.StudyBoard?.setThemeFavicon(isLight ? "light" : "dark");
     if (persist) saveTheme(isLight ? "light" : "dark");
 }
 
-applyTheme(readSavedTheme() || "dark", false);
+const browserTheme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+applyTheme(readSavedTheme() || browserTheme, false);
 
 themeButton.addEventListener("click", () => {
     applyTheme(root.dataset.theme === "light" ? "dark" : "light");

@@ -46,5 +46,24 @@ Copy-Item -LiteralPath (Join-Path $projectRoot "static") -Destination $clientRoo
 Copy-Item -LiteralPath (Join-Path $projectRoot "study") -Destination $clientRoot.FullName -Recurse
 Copy-Item -LiteralPath (Join-Path $projectRoot "worker\index.js") -Destination (Join-Path $serverRoot.FullName "index.js")
 
+$sourceCommit = (& git -C $projectRoot rev-parse HEAD).Trim()
+if ($LASTEXITCODE -ne 0 -or -not $sourceCommit) {
+    throw "Could not identify the source commit for this build."
+}
+$sourceStatus = @(& git -C $projectRoot status --porcelain --untracked-files=all)
+if ($LASTEXITCODE -ne 0) {
+    throw "Could not inspect the source worktree for this build."
+}
+$buildState = [ordered]@{
+    sourceCommit = $sourceCommit
+    sourceDirty = $sourceStatus.Count -gt 0
+    githubVersion = $githubSiteVersion
+    sitesVersion = $sitesSiteVersion
+    builtAtUtc = [DateTime]::UtcNow.ToString("o")
+}
+$buildStatePath = Join-Path $distRoot "build-state.json"
+$utf8NoBom = [Text.UTF8Encoding]::new($false)
+[IO.File]::WriteAllText($buildStatePath, ($buildState | ConvertTo-Json) + [Environment]::NewLine, $utf8NoBom)
+
 Write-Output "Current canonical preference: $styleVersion"
 Write-Output "Built GitHub site $githubSiteVersion and Sites site $sitesSiteVersion into $distRoot"

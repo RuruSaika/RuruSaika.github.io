@@ -1,4 +1,4 @@
-import { mkdir, readdir, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -8,6 +8,7 @@ const REPOSITORY_ROOT = process.cwd();
 const OUTPUT_ROOT = path.resolve(REPOSITORY_ROOT, "static", "blog");
 const ASSET_ROOT = path.join(OUTPUT_ROOT, "assets");
 const MAX_ASSET_BYTES = 8 * 1024 * 1024;
+const MAX_CONCURRENT_REQUESTS = 4;
 const CURL = process.platform === "win32" ? "curl.exe" : "curl";
 const execFileAsync = promisify(execFile);
 const RESPONSE_MARKER = Buffer.from("\n__RUWEB_CONTENT_TYPE__:");
@@ -45,6 +46,23 @@ async function fetchJson(pathname) {
   return JSON.parse(response.body.toString("utf8"));
 }
 
+async function mapWithConcurrency(items, limit, mapper) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+
+  async function runWorker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await mapper(items[index], index);
+    }
+  }
+
+  const workerCount = Math.min(limit, items.length);
+  await Promise.all(Array.from({ length: workerCount }, runWorker));
+  return results;
+}
+
 function collectAssetIds(markdown) {
   const ids = new Set();
   const value = String(markdown || "");
@@ -60,29 +78,41 @@ function rewriteAssetUrls(markdown, assetPaths) {
 }
 
 async function downloadAsset(id) {
+  for (const extension of IMAGE_EXTENSIONS.values()) {
+    const fileName = `${id}.${extension}`;
+    try {
+      const bytes = await readFile(path.join(ASSET_ROOT, fileName));
+      if (bytes.length > 0 && bytes.length <= MAX_ASSET_BYTES) {
+        return { bytes, fileName, publicPath: `/static/blog/assets/${fileName}`, reused: true };
+      }
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
+  }
+
   const response = await fetchWithCurl(new URL(`/api/study/assets/${id}`, SOURCE_ORIGIN));
   const contentType = response.contentType.split(";", 1)[0].trim();
   const extension = IMAGE_EXTENSIONS.get(contentType);
   if (!extension) throw new Error(`Unsupported mirrored asset type for ${id}: ${contentType || "unknown"}`);
   const bytes = response.body;
   if (!bytes.length || bytes.length > MAX_ASSET_BYTES) throw new Error(`Invalid mirrored asset size for ${id}: ${bytes.length}`);
-  return { bytes, fileName: `${id}.${extension}`, publicPath: `/static/blog/assets/${id}.${extension}` };
+  return { bytes, fileName: `${id}.${extension}`, publicPath: `/static/blog/assets/${id}.${extension}`, reused: false };
 }
 
 const listPayload = await fetchJson("/api/study/posts?limit=100");
 if (!Array.isArray(listPayload.posts)) throw new Error("The public post list is invalid.");
 
-const posts = [];
-for (const item of listPayload.posts) {
+const posts = await mapWithConcurrency(listPayload.posts, MAX_CONCURRENT_REQUESTS, async (item) => {
   if (!item?.slug) throw new Error("A published post is missing its slug.");
   const detail = await fetchJson(`/api/study/posts/${encodeURIComponent(item.slug)}`);
   if (!detail?.post || detail.post.status === "draft") throw new Error(`The public post payload is invalid: ${item.slug}`);
-  posts.push(detail.post);
-}
+  return detail.post;
+});
 
 const assetIds = new Set();
 posts.forEach((post) => collectAssetIds(post.content).forEach((id) => assetIds.add(id)));
-const downloadedAssets = await Promise.all([...assetIds].sort().map(downloadAsset));
+await mkdir(ASSET_ROOT, { recursive: true });
+const downloadedAssets = await mapWithConcurrency([...assetIds].sort(), MAX_CONCURRENT_REQUESTS, downloadAsset);
 const assetPaths = new Map(downloadedAssets.map((asset) => [asset.fileName.replace(/\.[^.]+$/, ""), asset.publicPath]));
 
 const snapshot = {
@@ -92,8 +122,9 @@ const snapshot = {
   posts: posts.map((post) => ({ ...post, content: rewriteAssetUrls(post.content, assetPaths) })),
 };
 
-await mkdir(ASSET_ROOT, { recursive: true });
-for (const asset of downloadedAssets) await writeFile(path.join(ASSET_ROOT, asset.fileName), asset.bytes);
+for (const asset of downloadedAssets) {
+  if (!asset.reused) await writeFile(path.join(ASSET_ROOT, asset.fileName), asset.bytes);
+}
 await writeFile(path.join(OUTPUT_ROOT, "posts.json"), `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
 
 const expectedAssets = new Set(downloadedAssets.map((asset) => asset.fileName));
@@ -102,4 +133,5 @@ for (const fileName of await readdir(ASSET_ROOT)) {
     await unlink(path.join(ASSET_ROOT, fileName));
   }
 }
-console.log(`Mirrored ${posts.length} published post(s) and ${downloadedAssets.length} asset(s).`);
+const reusedAssetCount = downloadedAssets.filter((asset) => asset.reused).length;
+console.log(`Mirrored ${posts.length} published post(s) and ${downloadedAssets.length} asset(s); reused ${reusedAssetCount} asset snapshot(s).`);

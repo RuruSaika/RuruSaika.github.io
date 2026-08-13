@@ -1,13 +1,23 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light">
     <meta name="description" content="RuruSaika 的个人主页与 Blog。">
-    <meta name="theme-color" content="#0b0e10">
-    <meta name="rurusaika-preference-version" content="2026.08.12.4">
-    <meta name="rurusaika-site-version" content="2026.08.12.4.6">
+    <meta name="theme-color" content="#d8d9dd">
+    <script>
+        (() => {
+            let theme = null;
+            try { theme = localStorage.getItem("ruru-theme"); } catch { /* Use browser preference. */ }
+            if (theme !== "light" && theme !== "dark") {
+                theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            }
+            document.documentElement.dataset.theme = theme;
+        })();
+    </script>
+    <meta name="rurusaika-preference-version" content="2026.08.14.1">
+    <meta name="rurusaika-site-version" content="2026.08.14.1.1">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://rurusaika.github.io/">
     <meta property="og:title" content="RuruSaika — 个人主页">
@@ -16,19 +26,19 @@
     <meta name="twitter:title" content="RuruSaika — 个人主页">
     <meta name="twitter:description" content="RuruSaika 的个人主页与 Blog。">
     <title>RuruSaika — 个人主页</title>
-    <link rel="icon" href="static/img/favicon.svg" type="image/svg+xml" data-theme-favicon data-dark-href="static/img/favicon.svg" data-light-href="static/img/favicon-light.svg">
-    <link rel="icon" href="static/img/favicon.ico" sizes="any">
-    <link rel="icon" href="static/img/favicon-32.png" type="image/png" sizes="32x32" data-theme-favicon data-dark-href="static/img/favicon-32.png" data-light-href="static/img/favicon-light-32.png">
-    <link rel="apple-touch-icon" href="static/img/apple-touch-icon-180.png" sizes="180x180">
+    <link rel="icon" href="static/img/favicon-light.svg" type="image/svg+xml" data-theme-favicon data-dark-href="static/img/favicon.svg" data-light-href="static/img/favicon-light.svg">
+    <link rel="icon" href="static/img/favicon-light.ico" sizes="any" data-theme-favicon data-dark-href="static/img/favicon.ico" data-light-href="static/img/favicon-light.ico">
+    <link rel="icon" href="static/img/favicon-light-32.png" type="image/png" sizes="32x32" data-theme-favicon data-dark-href="static/img/favicon-32.png" data-light-href="static/img/favicon-light-32.png">
+    <link rel="apple-touch-icon" href="static/img/apple-touch-icon-light-180.png" sizes="180x180" data-theme-favicon data-dark-href="static/img/apple-touch-icon-180.png" data-light-href="static/img/apple-touch-icon-light-180.png">
     <link rel="stylesheet" href="static/vendor/katex/katex.min.css?v=0.18.4">
-    <link rel="stylesheet" href="static/css/styles.css?v=2026.08.12.4.6">
-    <script src="static/js/site-version.js?v=2026.08.12.4.6" defer></script>
+    <link rel="stylesheet" href="static/css/styles.css?v=2026.08.14.1.1">
+    <script src="static/js/site-version.js?v=2026.08.14.1.1" defer></script>
     <script src="static/vendor/markdown-it/markdown-it.umd.min.js?v=15.0.0" defer></script>
     <script src="static/vendor/katex/katex.min.js?v=0.18.4" defer></script>
     <script src="static/vendor/katex/auto-render.min.js?v=0.18.4" defer></script>
-    <script src="study/shared.js?v=2026.08.12.4.6" defer></script>
-    <script src="static/js/blog.js?v=2026.08.12.4.6" defer></script>
-    <script src="static/js/script.js?v=2026.08.12.4.6" defer></script>
+    <script src="study/shared.js?v=2026.08.14.1.1" defer></script>
+    <script src="static/js/blog.js?v=2026.08.14.1.1" defer></script>
+    <script src="static/js/script.js?v=2026.08.14.1.1" defer></script>
 </head>
 <body>
     <a class="skip-link" href="#main">跳到主要内容</a>
@@ -105,7 +115,7 @@
 
     <footer class="site-footer">
         <span>© <span data-year>2026</span> RuruSaika</span>
-        <span>V. <span data-site-version>2026.08.12.4.6</span></span>
+        <span>V. <span data-site-version>2026.08.14.1.1</span></span>
     </footer>
 </body>
 </html>

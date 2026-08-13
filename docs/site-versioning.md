@@ -32,3 +32,8 @@ The build script validates the version configuration and reports both the
 current canonical preference and the versions adopted by the two websites. A
 website being behind the canonical preference is valid and must not block a
 build or package operation.
+
+For releases, use `scripts/release.ps1` so the selected target counters are
+updated consistently. The script also classifies the safe deployment order and
+produces a release manifest. See `docs/release-process.md` for the complete
+workflow.

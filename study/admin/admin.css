@@ -1,19 +1,19 @@
 :root {
   color-scheme: dark;
-  --bg: #0d1115;
-  --bg-elevated: #131920;
-  --surface: #171e25;
-  --text: #edf2f4;
-  --muted: #91a0aa;
-  --faint: #63717a;
-  --border: #29323a;
-  --border-strong: #43515b;
+  --bg: #101010;
+  --bg-elevated: #262626;
+  --surface: #1a1a1a;
+  --text: #f2f2f2;
+  --muted: #b0b0b0;
+  --faint: #7a7a7a;
+  --border: #3b3b3b;
+  --border-strong: #505050;
   --accent: #00d3ff;
-  --accent-ink: #001b22;
+  --accent-ink: #101010;
   --danger: #e7a0a0;
   --warning: #ddbd7a;
   --focus: 0 0 0 3px rgb(0 211 255 / 20%);
-  --shadow: 0 24px 60px rgb(0 0 0 / 18%);
+  --shadow: 0 16px 32px rgb(0 0 0 / 24%);
   --max-width: 1320px;
   --serif: Georgia, "Times New Roman", "Noto Serif SC", serif;
   --sans: Inter, "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
@@ -39,6 +39,8 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+
+:root[data-theme="dark"] ::selection { background: rgb(0 211 255 / 20%); }
 
 html { min-width: 320px; }
 
