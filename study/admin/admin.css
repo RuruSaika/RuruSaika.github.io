@@ -425,6 +425,7 @@ button { color: inherit; }
 
 .draft-badge { color: var(--warning); }
 .published-badge { color: var(--accent); }
+.hidden-badge { color: var(--muted); }
 
 .sidebar-post:hover h3, .sidebar-post.active h3 { color: var(--accent); }
 .sidebar-post.active { box-shadow: inset 2px 0 0 var(--accent); }

@@ -134,7 +134,7 @@ function initAdmin() {
     renderPostList();
     if (selectId) {
       const selected = state.posts.find((post) => post.id === selectId);
-      if (selected) openPost(selected);
+      if (selected) showPost(selected);
     }
   }
 
@@ -174,10 +174,15 @@ function initAdmin() {
       return;
     }
     const usesPublishedDate = state.homepageSort === "published_at";
+    const statusPresentation = {
+      published: { className: "published-badge", label: "已发布" },
+      hidden: { className: "hidden-badge", label: "已隐藏" },
+      draft: { className: "draft-badge", label: "草稿" },
+    };
     postList.innerHTML = pagePosts.map((post) => `
       <article class="sidebar-post ${state.current?.id === post.id ? "active" : ""}" data-post-row data-post-id="${post.id}">
         <button class="sidebar-post-open" type="button" data-open-id="${post.id}">
-          <div class="sidebar-post-meta"><span>${escapeHtml(post.subject)}</span><span class="${post.status === "published" ? "published-badge" : "draft-badge"}">${post.status === "published" ? "已发布" : "草稿"}</span></div>
+          <div class="sidebar-post-meta"><span>${escapeHtml(post.subject)}</span><span class="${(statusPresentation[post.status] || statusPresentation.draft).className}">${(statusPresentation[post.status] || statusPresentation.draft).label}</span></div>
           <h3>${escapeHtml(post.title || "未命名文章")}</h3>
           <div class="sidebar-post-meta"><span>${usesPublishedDate
             ? (post.publishedAt ? `发布 ${formatDate(post.publishedAt)}` : "尚未发布")
@@ -241,7 +246,7 @@ function initAdmin() {
     fillForm(state.current);
     form.hidden = false;
     editorEmpty.hidden = true;
-    $("[data-archive]").hidden = true;
+    $("[data-hide]").hidden = true;
     $("[data-delete]").hidden = true;
     markDirty(false);
     $("[data-title]").focus();
@@ -251,11 +256,15 @@ function initAdmin() {
   function openPost(post) {
     if (state.current?.id === post.id) return;
     if (!confirmDiscard()) return;
+    showPost(post);
+  }
+
+  function showPost(post) {
     state.current = { ...post };
     fillForm(post);
     form.hidden = false;
     editorEmpty.hidden = true;
-    $("[data-archive]").hidden = false;
+    $("[data-hide]").hidden = post.status === "hidden";
     $("[data-delete]").hidden = false;
     markDirty(false);
     renderPostList();
@@ -269,7 +278,9 @@ function initAdmin() {
     requestAnimationFrame(resizeContentEditor);
     $("[data-subject]").value = post.subject || "其它";
     $("[data-tags]").value = (post.tags || []).join("，");
-    $("[data-status-label]").textContent = post.status === "published" ? `已发布 · ${formatDate(post.publishedAt)}` : post.id ? "草稿" : "新草稿";
+    $("[data-status-label]").textContent = post.status === "published"
+      ? `已发布 · ${formatDate(post.publishedAt)}`
+      : post.status === "hidden" ? "已隐藏" : post.id ? "草稿" : "新草稿";
     $(".status-dot").classList.toggle("published", post.status === "published");
     $("[data-publish]").textContent = post.status === "published" ? "更新发布" : "发布文章";
     renderPreview();
@@ -332,19 +343,18 @@ function initAdmin() {
     }
   }
 
-  async function archiveCurrent() {
+  async function hideCurrent() {
     if (!state.current?.id) return;
-    if (!confirm(`确定归档“${state.current.title}”吗？它会从公开页面和编辑列表中隐藏，但内容不会被删除。`)) return;
-    const response = await fetch(apiUrl(`/api/study/admin/posts/${state.current.id}/archive`), { method: "POST" });
+    if (!confirm(`确定隐藏“${state.current.title}”吗？它不会显示在个人主页，但仍会保留在编辑台。`)) return;
+    const response = await fetch(apiUrl(`/api/study/admin/posts/${state.current.id}/hide`), { method: "POST" });
     const data = await response.json();
-    if (!response.ok) return toast(data.error || "归档失败。", true);
-    state.current = null;
-    setFullscreen(false);
-    form.hidden = true;
-    editorEmpty.hidden = false;
+    if (!response.ok) return toast(data.error || "隐藏失败。", true);
+    state.current = data.post;
     markDirty(false);
-    await loadPosts();
-    toast("文章已归档，数据仍然保留。 ");
+    await loadPosts(state.current.id);
+    toast(data.sync?.queued === false && data.sync?.reason !== "not_public"
+      ? "文章已隐藏，但 GitHub 镜像未能启动；定时任务将稍后重试。"
+      : "文章已隐藏，仍可在编辑台中查看。", data.sync?.queued === false && data.sync?.reason !== "not_public");
   }
 
   async function deleteCurrent() {
@@ -554,7 +564,7 @@ function initAdmin() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state.fullscreen) setFullscreen(false);
   });
-  $("[data-archive]").addEventListener("click", archiveCurrent);
+  $("[data-hide]").addEventListener("click", hideCurrent);
   $("[data-delete]").addEventListener("click", deleteCurrent);
 
   const uploadZone = $("[data-upload-zone]");

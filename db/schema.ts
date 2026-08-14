@@ -5,7 +5,7 @@
  * remains framework-independent. Keep this model aligned with migrations in
  * /drizzle whenever the storage shape evolves.
  */
-export type StudyPostStatus = "draft" | "published" | "archived";
+export type StudyPostStatus = "draft" | "published" | "hidden";
 export type HomepageSortMode = "published_at" | "updated_at";
 export type BlogCategory = "生活" | "学习" | "其它";
 export type LegacyStudySubject = "数学" | "英语" | "政治" | "专业课" | "复盘" | "其他";

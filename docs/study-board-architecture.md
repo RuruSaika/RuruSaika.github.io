@@ -69,8 +69,8 @@ Client-side hiding is never treated as authorization.
 
 - `draft`: visible only in the editor.
 - `published`: visible through public APIs and the public board.
-- `archived`: hidden from both public listings and the normal editor list, but
-  retained in storage and included in exports.
+- `hidden`: omitted from public listings and article pages, but remains visible
+  and editable in the editor and is retained in exports.
 - Permanent deletion is an owner-only, same-origin `DELETE` operation. It removes
   the post from D1 and deletes its linked or Markdown-referenced image objects
   from both D1 and R2 after an explicit two-step confirmation in the editor.

@@ -144,7 +144,6 @@ async function handleApi(request, env, url) {
       SELECT id, slug, title, summary, content, subject, tags_json, status,
              published_at, created_at, updated_at
       FROM study_posts
-      WHERE status != 'archived'
       ORDER BY ${orderBy}
       LIMIT 200
     `).all();
@@ -180,7 +179,7 @@ async function handleApi(request, env, url) {
     const summary = cleanText(payload.summary, 400);
     const subject = normalizeCategory(payload.subject);
     const tags = normalizeTags(payload.tags);
-    const status = ["draft", "published"].includes(payload.status) ? payload.status : "draft";
+    const status = ["draft", "published", "hidden"].includes(payload.status) ? payload.status : "draft";
     const slug = title;
     const duplicate = await env.DB.prepare("SELECT id FROM study_posts WHERE (slug = ? OR title = ?) AND id <> ? LIMIT 1").bind(slug, title, id).first();
     if (duplicate) return json({ error: "已经存在同名文章，请使用不同的标题。" }, 409);
@@ -218,17 +217,23 @@ async function handleApi(request, env, url) {
     return json({ post: serializePost(saved), sync }, existing ? 200 : 201);
   }
 
-  const archiveMatch = url.pathname.match(/^\/api\/study\/admin\/posts\/([a-f0-9-]+)\/archive$/i);
-  if (archiveMatch && request.method === "POST") {
-    const existing = await env.DB.prepare("SELECT status FROM study_posts WHERE id = ? LIMIT 1").bind(archiveMatch[1]).first();
+  const hideMatch = url.pathname.match(/^\/api\/study\/admin\/posts\/([a-f0-9-]+)\/hide$/i);
+  if (hideMatch && request.method === "POST") {
+    const existing = await env.DB.prepare("SELECT status FROM study_posts WHERE id = ? LIMIT 1").bind(hideMatch[1]).first();
+    if (!existing) return json({ error: "没有找到要隐藏的文章。" }, 404);
     await env.DB.prepare(`
-      UPDATE study_posts SET status = 'archived', updated_at = ?
+      UPDATE study_posts SET status = 'hidden', updated_at = ?
       WHERE id = ?
-    `).bind(new Date().toISOString(), archiveMatch[1]).run();
+    `).bind(new Date().toISOString(), hideMatch[1]).run();
+    const hidden = await env.DB.prepare(`
+      SELECT id, slug, title, summary, content, subject, tags_json, status,
+             published_at, created_at, updated_at
+      FROM study_posts WHERE id = ? LIMIT 1
+    `).bind(hideMatch[1]).first();
     const sync = existing?.status === "published"
-      ? await requestPublicMirrorSync(env, "archive")
+      ? await requestPublicMirrorSync(env, "hide")
       : { queued: false, reason: "not_public" };
-    return json({ ok: true, sync });
+    return json({ post: serializePost(hidden), sync });
   }
 
   const deleteMatch = url.pathname.match(/^\/api\/study\/admin\/posts\/([a-f0-9-]+)$/i);
@@ -316,7 +321,7 @@ async function ensureSchema(env) {
         content TEXT NOT NULL DEFAULT '',
         subject TEXT NOT NULL DEFAULT '其他',
         tags_json TEXT NOT NULL DEFAULT '[]',
-        status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),
+        status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'hidden')),
         author_email TEXT NOT NULL,
         published_at TEXT,
         created_at TEXT NOT NULL,
@@ -353,6 +358,12 @@ async function ensureSchema(env) {
       if (columns.results.some((column) => column.name === "is_pinned")) {
         await env.DB.prepare("ALTER TABLE study_posts DROP COLUMN is_pinned").run();
       }
+      const postsTable = await env.DB.prepare(`
+        SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'study_posts' LIMIT 1
+      `).first();
+      if (String(postsTable?.sql || "").includes("'archived'")) {
+        await migrateArchivedPostsToHidden(env);
+      }
       await env.DB.prepare(`
         INSERT OR IGNORE INTO study_settings (key, value, updated_at)
         VALUES ('homepage_sort', 'updated_at', ?)
@@ -363,6 +374,56 @@ async function ensureSchema(env) {
     });
   }
   await schemaPromise;
+}
+
+async function migrateArchivedPostsToHidden(env) {
+  await env.DB.batch([
+    env.DB.prepare(`CREATE TABLE study_posts_hidden_migration (
+      id TEXT PRIMARY KEY NOT NULL,
+      slug TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      summary TEXT NOT NULL DEFAULT '',
+      content TEXT NOT NULL DEFAULT '',
+      subject TEXT NOT NULL DEFAULT '其他',
+      tags_json TEXT NOT NULL DEFAULT '[]',
+      status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'hidden')),
+      author_email TEXT NOT NULL,
+      published_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )`),
+    env.DB.prepare(`CREATE TABLE study_assets_hidden_migration (
+      id TEXT PRIMARY KEY NOT NULL,
+      post_id TEXT,
+      r2_key TEXT NOT NULL UNIQUE,
+      original_name TEXT NOT NULL,
+      content_type TEXT NOT NULL,
+      size_bytes INTEGER NOT NULL,
+      alt_text TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (post_id) REFERENCES study_posts_hidden_migration(id) ON DELETE SET NULL
+    )`),
+    env.DB.prepare(`INSERT INTO study_posts_hidden_migration (
+      id, slug, title, summary, content, subject, tags_json, status,
+      author_email, published_at, created_at, updated_at
+    ) SELECT
+      id, slug, title, summary, content, subject, tags_json,
+      CASE WHEN status = 'archived' THEN 'hidden' ELSE status END,
+      author_email, published_at, created_at, updated_at
+    FROM study_posts`),
+    env.DB.prepare(`INSERT INTO study_assets_hidden_migration (
+      id, post_id, r2_key, original_name, content_type, size_bytes, alt_text, created_at
+    ) SELECT
+      id, post_id, r2_key, original_name, content_type, size_bytes, alt_text, created_at
+    FROM study_assets`),
+    env.DB.prepare("DROP TABLE study_assets"),
+    env.DB.prepare("DROP TABLE study_posts"),
+    env.DB.prepare("ALTER TABLE study_posts_hidden_migration RENAME TO study_posts"),
+    env.DB.prepare("ALTER TABLE study_assets_hidden_migration RENAME TO study_assets"),
+    env.DB.prepare("CREATE INDEX idx_study_posts_status_published_at ON study_posts(status, published_at DESC)"),
+    env.DB.prepare("CREATE INDEX idx_study_posts_subject_status ON study_posts(subject, status)"),
+    env.DB.prepare("CREATE INDEX idx_study_assets_post_id ON study_assets(post_id)"),
+  ]);
 }
 
 async function readHomepageSort(env) {
