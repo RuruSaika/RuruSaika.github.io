@@ -4,6 +4,21 @@
   "homepageSort": "updated_at",
   "posts": [
     {
+      "id": "bdabbb32-58d8-401d-b94c-58549807e054",
+      "slug": "控制单元的功能",
+      "title": "控制单元的功能",
+      "summary": "",
+      "content": "",
+      "subject": "学习",
+      "tags": [
+        "408",
+        "计算机组成原理",
+        "控制单元"
+      ],
+      "publishedAt": "2026-08-14T13:42:47.738Z",
+      "updatedAt": "2026-08-14T13:42:47.738Z"
+    },
+    {
       "id": "749328a4-a1ec-4923-b32f-0fe87ec79ea8",
       "slug": "CPU的结构和功能",
       "title": "CPU的结构和功能",
