@@ -139,12 +139,13 @@ async function handleApi(request, env, url) {
 
   if (url.pathname === "/api/study/admin/posts" && request.method === "GET") {
     const homepageSort = await readHomepageSort(env);
+    const orderBy = homepageSort === "published_at" ? "published_at DESC, updated_at DESC" : "updated_at DESC, published_at DESC";
     const result = await env.DB.prepare(`
       SELECT id, slug, title, summary, content, subject, tags_json, status,
              published_at, created_at, updated_at
       FROM study_posts
       WHERE status != 'archived'
-      ORDER BY updated_at DESC, published_at DESC
+      ORDER BY ${orderBy}
       LIMIT 200
     `).all();
     return json({ posts: result.results.map(serializePost), homepageSort });

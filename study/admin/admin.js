@@ -140,7 +140,22 @@ function initAdmin() {
 
   function getFilteredPosts() {
     const query = $("[data-admin-search]").value.trim().toLowerCase();
-    return state.posts.filter((post) => [post.title, post.summary, post.subject, ...(post.tags || [])].join(" ").toLowerCase().includes(query));
+    return state.posts
+      .filter((post) => [post.title, post.summary, post.subject, ...(post.tags || [])].join(" ").toLowerCase().includes(query))
+      .sort(compareAdminPosts);
+  }
+
+  function compareAdminPosts(left, right) {
+    if (state.homepageSort === "published_at") {
+      const leftPublished = left.publishedAt ? Date.parse(left.publishedAt) || 0 : null;
+      const rightPublished = right.publishedAt ? Date.parse(right.publishedAt) || 0 : null;
+      if (leftPublished === null && rightPublished !== null) return 1;
+      if (leftPublished !== null && rightPublished === null) return -1;
+      if (leftPublished !== rightPublished) return (rightPublished || 0) - (leftPublished || 0);
+    }
+    const updatedDifference = (Date.parse(right.updatedAt || right.publishedAt) || 0) - (Date.parse(left.updatedAt || left.publishedAt) || 0);
+    if (updatedDifference) return updatedDifference;
+    return String(left.id || "").localeCompare(String(right.id || ""));
   }
 
   function renderPostList() {
@@ -158,12 +173,15 @@ function initAdmin() {
       postList.innerHTML = `<div class="post-list-empty">${state.posts.length ? "没有找到匹配的文章。" : "还没有文章。点击上方按钮，写下第一篇。"}</div>`;
       return;
     }
+    const usesPublishedDate = state.homepageSort === "published_at";
     postList.innerHTML = pagePosts.map((post) => `
       <article class="sidebar-post ${state.current?.id === post.id ? "active" : ""}" data-post-row data-post-id="${post.id}">
         <button class="sidebar-post-open" type="button" data-open-id="${post.id}">
           <div class="sidebar-post-meta"><span>${escapeHtml(post.subject)}</span><span class="${post.status === "published" ? "published-badge" : "draft-badge"}">${post.status === "published" ? "已发布" : "草稿"}</span></div>
           <h3>${escapeHtml(post.title || "未命名文章")}</h3>
-          <div class="sidebar-post-meta"><span>修改 ${formatDate(post.updatedAt)}</span></div>
+          <div class="sidebar-post-meta"><span>${usesPublishedDate
+            ? (post.publishedAt ? `发布 ${formatDate(post.publishedAt)}` : "尚未发布")
+            : `修改 ${formatDate(post.updatedAt)}`}</span></div>
         </button>
       </article>
     `).join("");
@@ -203,6 +221,9 @@ function initAdmin() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "主页排序保存失败");
       state.homepageSort = data.homepageSort;
+      const selectedIndex = state.current?.id ? getFilteredPosts().findIndex((post) => post.id === state.current.id) : -1;
+      state.page = selectedIndex >= 0 ? Math.floor(selectedIndex / state.pageSize) + 1 : 1;
+      renderPostList();
       setSaveState(state.dirty ? "有尚未保存的修改" : "主页排序已保存", state.dirty ? "dirty" : "saved");
       toast(data.sync?.queued === false ? "主页排序已保存；GitHub 镜像将稍后重试。" : "主页排序已保存，GitHub 镜像正在更新。", data.sync?.queued === false);
     } catch (error) {
