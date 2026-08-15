@@ -16,6 +16,7 @@
   --shadow: 0 16px 32px rgb(0 0 0 / 24%);
   --max-width: 1320px;
   --serif: Georgia, "Times New Roman", "Noto Serif SC", serif;
+  --article-serif: "Source Serif 4", "Noto Serif SC", Georgia, serif;
   --sans: Inter, "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
   --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
 }
@@ -586,9 +587,10 @@ button { color: inherit; }
 .markdown-preview {
   min-height: 360px;
   color: var(--text);
-  font-family: var(--serif);
+  font-family: var(--article-serif);
   font-size: 1.04rem;
   line-height: 1.9;
+  font-optical-sizing: auto;
 }
 
 .preview-document.has-outline {
@@ -641,7 +643,7 @@ button { color: inherit; }
 .markdown-preview h3,
 .markdown-preview h4,
 .markdown-preview h5,
-.markdown-preview h6 { margin: 2.3em 0 0.8em; font-family: var(--serif); font-weight: 400; }
+.markdown-preview h6 { margin: 2.3em 0 0.8em; font-family: var(--article-serif); font-weight: 400; }
 .markdown-preview h1, .markdown-preview h2 { padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); font-size: 1.8rem; }
 .markdown-preview h3 { font-size: 1.35rem; }
 .markdown-preview [id] { scroll-margin-top: 24px; }

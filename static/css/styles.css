@@ -16,6 +16,7 @@
     --reading-width: 720px;
     --page-pad: clamp(1.25rem, 4vw, 3rem);
     --serif: Georgia, "Times New Roman", "Noto Serif SC", serif;
+    --article-serif: "Source Serif 4", "Noto Serif SC", Georgia, serif;
     --sans: Inter, "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
     --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
 }
@@ -543,9 +544,10 @@ button { color: inherit; }
 
 .blog-article-body {
     padding: clamp(2.5rem, 7vw, 4.5rem) 0 1rem;
-    font-family: var(--serif);
+    font-family: var(--article-serif);
     font-size: 1.08rem;
     line-height: 1.95;
+    font-optical-sizing: auto;
 }
 
 .blog-article-body h1,
@@ -555,7 +557,7 @@ button { color: inherit; }
 .blog-article-body h5,
 .blog-article-body h6 {
     margin: 2.6em 0 0.8em;
-    font-family: var(--serif);
+    font-family: var(--article-serif);
     line-height: 1.25;
 }
 
