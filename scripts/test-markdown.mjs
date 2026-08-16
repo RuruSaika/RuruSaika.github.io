@@ -145,6 +145,12 @@ assert.match(featureHtml, /&lt;safe&gt;/);
 assert.match(featureHtml, /href="https:\/\/example\.org"/);
 assert.match(featureHtml, /<div class="note"><strong>HTML 内容<\/strong><\/div>/);
 
+const cjkStrongHtml = render("- **译码器**常用于操作码译码\n- **多路选择器(MUX)**根据控制信号选择输入");
+assert.match(cjkStrongHtml, /<strong>译码器<\/strong>常用于操作码译码/);
+assert.match(cjkStrongHtml, /<strong>多路选择器\(MUX\)<\/strong>根据控制信号选择输入/);
+assert.match(render("***粗斜体***"), /<em><strong>粗斜体<\/strong><\/em>/);
+assert.doesNotMatch(render("未闭合 **多路选择器(MUX)根据"), /<strong>/);
+
 const internalPostLink = render("[继续阅读](/blog/?post=CPU概述#基本结构)");
 assert.match(internalPostLink, /href="\/blog\/\?post=CPU%E6%A6%82%E8%BF%B0#%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"/);
 assert.doesNotMatch(internalPostLink, /target="_blank"/);

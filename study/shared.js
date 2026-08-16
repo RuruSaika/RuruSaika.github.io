@@ -39,6 +39,29 @@
       typographer: false,
     });
 
+    parser.inline.ruler.before("emphasis", "cjk-strong-after-ascii-bracket", (state, silent) => {
+      const start = state.pos;
+      if (state.src.slice(start, start + 2) !== "**" || state.src[start + 2] === "*") return false;
+      const end = state.src.indexOf("**", start + 2);
+      if (end < 0 || end >= state.posMax || !state.src.slice(start + 2, end).trim()) return false;
+      const beforeClose = state.src[end - 1] || "";
+      const afterClose = state.src[end + 2] || "";
+      if (!/[)\]}]/.test(beforeClose) || !/\p{Script=Han}/u.test(afterClose)) return false;
+      if (!silent) {
+        const opening = state.push("strong_open", "strong", 1);
+        opening.markup = "**";
+        const originalMax = state.posMax;
+        state.pos = start + 2;
+        state.posMax = end;
+        state.md.inline.tokenize(state);
+        state.posMax = originalMax;
+        const closing = state.push("strong_close", "strong", -1);
+        closing.markup = "**";
+      }
+      state.pos = end + 2;
+      return true;
+    });
+
     parser.inline.ruler.before("emphasis", "mark", (state, silent) => {
       const start = state.pos;
       if (state.src.slice(start, start + 2) !== "==" || state.src[start + 2] === "=") return false;
