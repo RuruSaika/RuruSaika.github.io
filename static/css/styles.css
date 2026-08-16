@@ -503,6 +503,7 @@ button { color: inherit; }
     cursor: pointer;
     font-size: 0.72rem;
     font-weight: 700;
+    text-decoration: none;
     transition: transform 160ms ease;
 }
 
@@ -526,13 +527,30 @@ button { color: inherit; }
 
 .blog-article-info span:first-child { color: var(--accent); }
 
-.blog-article-header h2 {
+.blog-article-header h1 {
     margin: 1.3rem 0 1.5rem;
     font-family: var(--serif);
     font-size: clamp(2.8rem, 8vw, 5.5rem);
     font-weight: 500;
     line-height: 1;
     letter-spacing: -0.06em;
+}
+
+.blog-missing {
+    min-height: calc(100svh - 13rem);
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+}
+
+.blog-missing h1 {
+    max-width: 15ch;
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(2.7rem, 7vw, 5.5rem);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.055em;
 }
 
 .blog-article-header > p {

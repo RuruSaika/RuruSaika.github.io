@@ -137,6 +137,7 @@ function Invoke-SourceChecks {
         "study/shared.js",
         "study/admin/admin.js",
         "static/js/blog.js",
+        "static/js/article.js",
         "static/js/script.js",
         "scripts/sync-public-blog.mjs"
     )

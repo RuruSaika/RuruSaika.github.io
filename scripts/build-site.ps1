@@ -44,6 +44,7 @@ $serverRoot = New-Item -ItemType Directory -Force -Path (Join-Path $distRoot "se
 Copy-Item -LiteralPath (Join-Path $projectRoot "index.html") -Destination $clientRoot.FullName
 Copy-Item -LiteralPath (Join-Path $projectRoot "static") -Destination $clientRoot.FullName -Recurse
 Copy-Item -LiteralPath (Join-Path $projectRoot "study") -Destination $clientRoot.FullName -Recurse
+Copy-Item -LiteralPath (Join-Path $projectRoot "blog") -Destination $clientRoot.FullName -Recurse
 Copy-Item -LiteralPath (Join-Path $projectRoot "worker\index.js") -Destination (Join-Path $serverRoot.FullName "index.js")
 
 $sourceCommit = (& git -C $projectRoot rev-parse HEAD).Trim()

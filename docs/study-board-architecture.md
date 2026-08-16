@@ -5,11 +5,12 @@ portfolio redesign does not endanger the accumulated articles.
 
 ## Boundaries
 
-- The public Blog presentation is part of the root personal site. `index.html`
-  contains the article index and unified reader view. On the Sites origin,
-  `static/js/blog.js` consumes the live public API. On GitHub Pages it reads the
-  same-origin `static/blog/posts.json` snapshot, so visitors do not depend on
-  the Sites origin.
+- The public Blog presentation has two explicit routes. `index.html` contains
+  only the article index and links into `/blog/?post=<title>`; `blog/index.html`
+  owns article reading, outlines, and the invalid-or-deleted state. On the Sites
+  origin, the public scripts consume the live API. On GitHub Pages they read the
+  same-origin `static/blog/posts.json` snapshot, so visitors do not depend on the
+  Sites origin.
 - `study/` is retained only for the private editor, shared Markdown renderer,
   and editor-specific styles. The old public Blog paths are intentionally not
   kept as compatibility routes.

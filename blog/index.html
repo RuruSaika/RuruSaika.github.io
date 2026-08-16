@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
+    <meta name="description" content="RuruSaika 的 Blog。">
+    <meta name="theme-color" content="#d8d9dd">
+    <script>
+        (() => {
+            let theme = null;
+            try { theme = localStorage.getItem("ruru-theme"); } catch { /* Use browser preference. */ }
+            if (theme !== "light" && theme !== "dark") {
+                theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            }
+            document.documentElement.dataset.theme = theme;
+        })();
+    </script>
+    <meta name="rurusaika-preference-version" content="2026.08.14.1">
+    <meta name="rurusaika-site-version" content="2026.08.14.1.2">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://rurusaika.github.io/blog/">
+    <meta property="og:title" content="RuruSaika — Blog">
+    <meta property="og:description" content="RuruSaika 的 Blog。">
+    <meta name="twitter:card" content="summary">
+    <title>RuruSaika — Blog</title>
+    <link rel="icon" href="/static/img/favicon-light.svg" type="image/svg+xml" data-theme-favicon data-dark-href="/static/img/favicon.svg" data-light-href="/static/img/favicon-light.svg">
+    <link rel="icon" href="/static/img/favicon-light.ico" sizes="any" data-theme-favicon data-dark-href="/static/img/favicon.ico" data-light-href="/static/img/favicon-light.ico">
+    <link rel="icon" href="/static/img/favicon-light-32.png" type="image/png" sizes="32x32" data-theme-favicon data-dark-href="/static/img/favicon-32.png" data-light-href="/static/img/favicon-light-32.png">
+    <link rel="apple-touch-icon" href="/static/img/apple-touch-icon-light-180.png" sizes="180x180" data-theme-favicon data-dark-href="/static/img/apple-touch-icon-180.png" data-light-href="/static/img/apple-touch-icon-light-180.png">
+    <link rel="stylesheet" href="/static/vendor/katex/katex.min.css?v=0.18.4">
+    <link rel="stylesheet" href="/static/css/fonts.css?v=2026.08.15.1">
+    <link rel="stylesheet" href="/static/css/styles.css?v=2026.08.16.1">
+    <script src="/static/js/site-version.js?v=2026.08.14.1.2" defer></script>
+    <script src="/static/vendor/markdown-it/markdown-it.umd.min.js?v=15.0.0" defer></script>
+    <script src="/static/vendor/katex/katex.min.js?v=0.18.4" defer></script>
+    <script src="/static/vendor/katex/auto-render.min.js?v=0.18.4" defer></script>
+    <script src="/study/shared.js?v=2026.08.14.1.2" defer></script>
+    <script src="/static/js/article.js?v=2026.08.16.1" defer></script>
+    <script src="/static/js/script.js?v=2026.08.14.1.2" defer></script>
+</head>
+<body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+
+    <header class="site-header" data-header>
+        <a class="brand" href="/" aria-label="返回个人主页">RuruSaika</a>
+        <nav class="main-nav" aria-label="主要导航">
+            <a href="/#top">首页</a>
+            <a href="/#blog">Blog</a>
+            <button class="theme-toggle" type="button" data-theme-toggle aria-label="切换为浅色主题" aria-pressed="false">
+                <span data-theme-label>浅色</span>
+            </button>
+        </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+        <section class="blog-section blog-reading" data-blog-section>
+            <article class="blog-reader" data-blog-reader aria-live="polite">
+                <a class="blog-back" href="/#blog" data-blog-back>← 返回全部文章</a>
+                <div data-blog-article><div class="blog-article-state">正在打开文章……</div></div>
+            </article>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <span>© <span data-year>2026</span> RuruSaika</span>
+        <span>V. <span data-site-version>2026.08.14.1.2</span></span>
+    </footer>
+</body>
+</html>

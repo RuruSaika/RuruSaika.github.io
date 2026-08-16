@@ -145,6 +145,10 @@ assert.match(featureHtml, /&lt;safe&gt;/);
 assert.match(featureHtml, /href="https:\/\/example\.org"/);
 assert.match(featureHtml, /<div class="note"><strong>HTML 内容<\/strong><\/div>/);
 
+const internalPostLink = render("[继续阅读](/blog/?post=CPU概述#基本结构)");
+assert.match(internalPostLink, /href="\/blog\/\?post=CPU%E6%A6%82%E8%BF%B0#%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"/);
+assert.doesNotMatch(internalPostLink, /target="_blank"/);
+
 const markHtml = render("普通 ==高亮 **粗体**== 文字，`==代码==`，未闭合 ==原样保留。");
 assert.match(markHtml, /<mark>高亮 <strong>粗体<\/strong><\/mark>/);
 assert.match(markHtml, /<code>==代码==<\/code>/);
