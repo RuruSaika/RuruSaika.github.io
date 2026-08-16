@@ -182,7 +182,8 @@ function initAdmin() {
     postList.innerHTML = pagePosts.map((post) => `
       <article class="sidebar-post ${state.current?.id === post.id ? "active" : ""}" data-post-row data-post-id="${post.id}">
         <button class="sidebar-post-open" type="button" data-open-id="${post.id}">
-          <div class="sidebar-post-meta"><span>${escapeHtml(post.subject)}</span><span class="${(statusPresentation[post.status] || statusPresentation.draft).className}">${(statusPresentation[post.status] || statusPresentation.draft).label}</span></div>
+          <span class="sidebar-post-status ${(statusPresentation[post.status] || statusPresentation.draft).className}">${(statusPresentation[post.status] || statusPresentation.draft).label}</span>
+          <div class="sidebar-post-meta sidebar-post-subject"><span>${escapeHtml(post.subject)}</span></div>
           <h3>${escapeHtml(post.title || "未命名文章")}</h3>
           <div class="sidebar-post-meta"><span>${usesPublishedDate
             ? (post.publishedAt ? `发布 ${formatDate(post.publishedAt)}` : "尚未发布")

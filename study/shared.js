@@ -418,12 +418,12 @@
     };
   }
 
-  function formatDate(value, long = false) {
+  function formatDate(value) {
     if (!value) return "未发布";
-    return new Intl.DateTimeFormat("zh-CN", long
-      ? { year: "numeric", month: "long", day: "numeric" }
-      : { year: "numeric", month: "2-digit", day: "2-digit" }
-    ).format(new Date(value));
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "未发布";
+    const pad = (part) => String(part).padStart(2, "0");
+    return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
   }
 
   window.StudyBoard = { SITES_ORIGIN, apiUrl, assetUrl, escapeHtml, setThemeFavicon, renderMarkdown, renderMarkdownDocument, renderOutline, bindOutlineTracking, renderLatex, adjustMarkdownIndent, formatDate, isSitesHost, isLocal };

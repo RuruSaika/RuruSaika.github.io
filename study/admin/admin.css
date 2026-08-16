@@ -391,6 +391,8 @@ button { color: inherit; }
 }
 
 .sidebar-post-open {
+  position: relative;
+  width: 100%;
   min-width: 0;
   display: grid;
   gap: 8px;
@@ -400,6 +402,17 @@ button { color: inherit; }
   color: inherit;
   text-align: left;
   cursor: pointer;
+}
+
+.sidebar-post-subject { padding-right: 4.5rem; }
+
+.sidebar-post-status {
+  position: absolute;
+  top: 12px;
+  right: 8px;
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.04em;
 }
 
 .sidebar-post h3 {

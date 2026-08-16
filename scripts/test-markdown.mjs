@@ -16,10 +16,13 @@ const renderDocument = context.StudyBoard.renderMarkdownDocument;
 const bindOutlineTracking = context.StudyBoard.bindOutlineTracking;
 const renderLatex = context.StudyBoard.renderLatex;
 const adjustIndent = context.StudyBoard.adjustMarkdownIndent;
+const formatDate = context.StudyBoard.formatDate;
 const compact = (value) => value.replace(/\s+/g, "");
 
 assert.equal(typeof renderLatex, "function");
 assert.equal(typeof bindOutlineTracking, "function");
+assert.equal(formatDate("2026-01-02T03:04:00"), "2026/01/02 03:04");
+assert.equal(formatDate("not-a-date"), "未发布");
 assert.doesNotThrow(() => renderLatex(null));
 assert.match(render("行内公式 $E = mc^2$。"), /\$E = mc\^2\$/);
 assert.match(render("$$\\frac{1}{2}$$"), /\$\$\\frac\{1\}\{2\}\$\$/);
