@@ -171,7 +171,7 @@ button { color: inherit; }
 .hero h1 {
     margin: 0;
     font-family: var(--serif);
-    font-size: clamp(4rem, 7.4vw, 7rem);
+    font-size: clamp(3.4rem, 6.4vw, 5.8rem);
     font-weight: 500;
     line-height: 0.98;
     letter-spacing: -0.07em;
@@ -225,7 +225,7 @@ button { color: inherit; }
 .blog-heading h2 {
     margin: 0;
     font-family: var(--serif);
-    font-size: clamp(4.5rem, 11vw, 9rem);
+    font-size: clamp(3.8rem, 9vw, 7rem);
     font-weight: 500;
     line-height: 0.85;
     letter-spacing: -0.075em;
@@ -530,7 +530,7 @@ button { color: inherit; }
 .blog-article-header h1 {
     margin: 1.3rem 0 1.5rem;
     font-family: var(--serif);
-    font-size: clamp(2.8rem, 8vw, 5.5rem);
+    font-size: clamp(2.4rem, 6vw, 4.4rem);
     font-weight: 500;
     line-height: 1;
     letter-spacing: -0.06em;
@@ -547,7 +547,7 @@ button { color: inherit; }
     max-width: 15ch;
     margin: 0;
     font-family: var(--serif);
-    font-size: clamp(2.7rem, 7vw, 5.5rem);
+    font-size: clamp(2.3rem, 6vw, 4.4rem);
     font-weight: 500;
     line-height: 1.05;
     letter-spacing: -0.055em;
@@ -579,8 +579,8 @@ button { color: inherit; }
     line-height: 1.25;
 }
 
-.blog-article-body h1, .blog-article-body h2 { padding-bottom: 0.45rem; border-bottom: 1px solid var(--line); font-size: 1.9rem; }
-.blog-article-body h3 { font-size: 1.45rem; }
+.blog-article-body h1, .blog-article-body h2 { padding-bottom: 0.45rem; border-bottom: 1px solid var(--line); font-size: 1.7rem; }
+.blog-article-body h3 { font-size: 1.3rem; }
 .blog-article-body p { margin: 1.2rem 0; }
 .blog-article-body a { color: var(--accent); text-underline-offset: 0.2em; }
 .blog-article-body u { text-decoration-color: var(--accent); }
@@ -698,8 +698,8 @@ button { color: inherit; }
     .main-nav { gap: 0.9rem; }
     .main-nav a:first-child { display: none; }
     .hero { min-height: calc(100svh - 4rem); padding-top: 4rem; }
-    .hero h1 { font-size: clamp(2.6rem, 10.8vw, 4.1rem); }
-    .blog-heading h2 { font-size: clamp(4.2rem, 22vw, 6.5rem); }
+    .hero h1 { font-size: clamp(2.3rem, 9.5vw, 3.4rem); }
+    .blog-heading h2 { font-size: clamp(3.4rem, 18vw, 5.2rem); }
     .blog-controls { align-items: flex-start; flex-direction: column; }
     .blog-card { grid-template-columns: 1fr auto; gap: 1.1rem; }
     .blog-date { grid-column: 1 / -1; }

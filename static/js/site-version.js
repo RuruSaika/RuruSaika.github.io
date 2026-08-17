@@ -3,7 +3,7 @@
         github: "2026.08.14.1",
         sites: "2026.08.14.1",
     });
-    const releaseNumbers = Object.freeze({ github: 7, sites: 7 });
+    const releaseNumbers = Object.freeze({ github: 8, sites: 8 });
     const target = location.hostname.endsWith("chatgpt.site") ? "sites" : "github";
     const versions = Object.freeze({
         github: `${preferenceVersions.github}.${releaseNumbers.github}`,

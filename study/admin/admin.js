@@ -33,7 +33,7 @@ if (!isSitesHost && !isLocal) {
 
 function initAdmin() {
   const MAX_POSTS_PER_PAGE = 7;
-  const state = { posts: [], current: null, dirty: false, preview: false, fullscreen: false, saving: false, page: 1, pageSize: MAX_POSTS_PER_PAGE, homepageSort: "updated_at" };
+  const state = { posts: [], current: null, dirty: false, preview: false, saving: false, page: 1, pageSize: MAX_POSTS_PER_PAGE, homepageSort: "updated_at", subjectFilter: "全部" };
   const $ = (selector) => document.querySelector(selector);
   const authScreen = $("[data-auth-screen]");
   const adminApp = $("[data-admin-app]");
@@ -43,7 +43,7 @@ function initAdmin() {
   const content = $("[data-content]");
   const preview = $("[data-preview]");
   const editor = $("[data-editor]");
-  const fullscreenButton = $("[data-fullscreen-toggle]");
+  const sidebarToggle = $("[data-sidebar-toggle]");
   const toastRoot = $("[data-toast]");
   let toastTimer;
   let cleanupOutlineTracking = () => {};
@@ -55,9 +55,19 @@ function initAdmin() {
     headerState.classList.toggle("dirty", mode === "dirty");
     headerState.classList.toggle("error", mode === "error");
     headerState.classList.toggle("saving", mode === "saving");
-    $("[data-fullscreen-save-state-label]").textContent = message;
-    $("[data-fullscreen-save-state]").dataset.state = mode;
   }
+
+  function setSidebarCollapsed(collapsed, persist = true) {
+    adminApp.classList.toggle("sidebar-collapsed", collapsed);
+    sidebarToggle.textContent = collapsed ? "→" : "←";
+    sidebarToggle.setAttribute("aria-expanded", String(!collapsed));
+    sidebarToggle.setAttribute("aria-label", collapsed ? "展开文章侧边栏" : "收起文章侧边栏");
+    if (persist) {
+      try { localStorage.setItem("ruru-admin-sidebar-collapsed", collapsed ? "1" : "0"); } catch { /* The sidebar still works without storage. */ }
+    }
+  }
+
+  try { setSidebarCollapsed(localStorage.getItem("ruru-admin-sidebar-collapsed") === "1", false); } catch { setSidebarCollapsed(false, false); }
 
   async function boot() {
     const message = $("[data-auth-message]");
@@ -141,6 +151,7 @@ function initAdmin() {
   function getFilteredPosts() {
     const query = $("[data-admin-search]").value.trim().toLowerCase();
     return state.posts
+      .filter((post) => state.subjectFilter === "全部" || post.subject === state.subjectFilter)
       .filter((post) => [post.title, post.summary, post.subject, ...(post.tags || [])].join(" ").toLowerCase().includes(query))
       .sort(compareAdminPosts);
   }
@@ -247,8 +258,13 @@ function initAdmin() {
     fillForm(state.current);
     form.hidden = false;
     editorEmpty.hidden = true;
-    $("[data-hide]").hidden = true;
-    $("[data-delete]").hidden = true;
+    const hideButton = $("[data-hide]");
+    const deleteButton = $("[data-delete]");
+    hideButton.hidden = false;
+    hideButton.disabled = true;
+    hideButton.textContent = "隐藏";
+    deleteButton.hidden = false;
+    deleteButton.disabled = true;
     markDirty(false);
     $("[data-title]").focus();
     renderPostList();
@@ -265,8 +281,13 @@ function initAdmin() {
     fillForm(post);
     form.hidden = false;
     editorEmpty.hidden = true;
-    $("[data-hide]").hidden = post.status === "hidden";
-    $("[data-delete]").hidden = false;
+    const hideButton = $("[data-hide]");
+    const deleteButton = $("[data-delete]");
+    hideButton.hidden = false;
+    hideButton.disabled = post.status === "hidden";
+    hideButton.textContent = post.status === "hidden" ? "已隐藏" : "隐藏";
+    deleteButton.hidden = false;
+    deleteButton.disabled = false;
     markDirty(false);
     renderPostList();
   }
@@ -467,15 +488,6 @@ function initAdmin() {
     restoreDocumentPosition(next ? preview : content, documentPosition, editorScroll);
   }
 
-  function setFullscreen(next) {
-    state.fullscreen = next;
-    editor.classList.toggle("editor-fullscreen", next);
-    document.body.classList.toggle("editor-is-fullscreen", next);
-    fullscreenButton.textContent = next ? "退出全屏" : "全屏编辑";
-    fullscreenButton.setAttribute("aria-pressed", String(next));
-    if (next && !state.preview) content.focus();
-  }
-
   function insertAtCursor(before, after = "") {
     const start = content.selectionStart;
     const end = content.selectionEnd;
@@ -544,8 +556,14 @@ function initAdmin() {
   }).observe(postList);
   $("[data-new-post]").addEventListener("click", newPost);
   $("[data-empty-new]").addEventListener("click", newPost);
+  sidebarToggle.addEventListener("click", () => setSidebarCollapsed(!adminApp.classList.contains("sidebar-collapsed")));
   $("[data-retry-auth]").addEventListener("click", boot);
   $("[data-admin-search]").addEventListener("input", () => { state.page = 1; renderPostList(); });
+  $("[data-admin-category]").addEventListener("change", (event) => {
+    state.subjectFilter = event.target.value;
+    state.page = 1;
+    renderPostList();
+  });
   $("[data-homepage-sort]").addEventListener("change", (event) => saveHomepageSort(event.target.value));
   form.addEventListener("input", () => markDirty());
   content.addEventListener("input", resizeContentEditor);
@@ -561,10 +579,6 @@ function initAdmin() {
   form.addEventListener("submit", (event) => { event.preventDefault(); save("published"); });
   $("[data-save-draft]").addEventListener("click", () => save("draft"));
   $("[data-preview-toggle]").addEventListener("click", () => setPreview(!state.preview));
-  fullscreenButton.addEventListener("click", () => setFullscreen(!state.fullscreen));
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && state.fullscreen) setFullscreen(false);
-  });
   $("[data-hide]").addEventListener("click", hideCurrent);
   $("[data-delete]").addEventListener("click", deleteCurrent);
 
